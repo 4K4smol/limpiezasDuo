@@ -19,6 +19,7 @@ class ClienteResource extends JsonResource
             'email' => $this->email,
             'fecha_registro' => $this->fecha_registro,
             'activo' => $this->activo,
+            'ubicaciones' => $this->ubicaciones,
             'created_at' => $this->created_at,
         ];
     }

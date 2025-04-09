@@ -30,10 +30,14 @@ Route::middleware('auth:sanctum')->group(function () {
     // ... etc
 
 
-    Route::apiResource('ordenes-trabajo', OrdenTrabajoController::class)->parameters([
-        'ordenes-trabajo' => 'ordenTrabajo' // Asegura que el parámetro coincida con el nombre en el controller (OrdenTrabajo $ordenTrabajo)
-    ]);
+
 });
+Route::apiResource('ordenes-trabajo', OrdenTrabajoController::class)->parameters([
+    'ordenes-trabajo' => 'ordenTrabajo' // Asegura que el parámetro coincida con el nombre en el controller (OrdenTrabajo $ordenTrabajo)
+]);
+Route::patch('/ordenes-trabajo/{id}/estado', [OrdenTrabajoController::class, 'cambiarEstado']);
+
+
 
 Route::apiResource('facturas', FacturaController::class);
 

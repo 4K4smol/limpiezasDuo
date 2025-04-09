@@ -12,6 +12,9 @@ const Sidebar = () => {
         <NavLink to="/clientes" className={({ isActive }) => isActive ? "font-semibold text-yellow-300" : ""}>
           Clientes
         </NavLink>
+        <NavLink to="/ordenes-trabajo" className={({ isActive }) => isActive ? "font-semibold text-yellow-300" : ""}>
+          Órdenes
+        </NavLink>
         <NavLink to="/facturas" className={({ isActive }) => isActive ? "font-semibold text-yellow-300" : ""}>
           Facturas
         </NavLink>

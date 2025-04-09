@@ -20,16 +20,45 @@ class OrdenTrabajoController extends Controller
      */
     public function index(Request $request)
     {
-        // Carga básica de relaciones para la lista
-        $ordenes = OrdenTrabajo::with(['cliente:id_cliente,nombre', 'ubicacion:id_ubicacion,direccion', 'empleado:id_empleado,nombre'])
-                    // TODO: Añadir filtros opcionales según parámetros de $request
-                    // ej: ->when($request->estado, fn($q, $estado) => $q->where('estado', $estado))
-                    // ej: ->when($request->cliente_id, fn($q, $id) => $q->where('id_cliente', $id))
-                    ->latest('fecha_creacion') // Ordenar por creación descendente
-                    ->paginate(15); // O $request->input('per_page', 15)
+        // Empezamos con la query base y relaciones necesarias
+        $query = OrdenTrabajo::with([
+            'cliente:id_cliente,razon_social',
+            'ubicacion:id_ubicacion,direccion',
+            'empleado:id_empleado,nombre'
+        ]);
+
+        // Filtro por estado (puede ser string o array)
+        if ($request->has('estado')) {
+            $estados = is_array($request->estado) ? $request->estado : [$request->estado];
+            $query->whereIn('estado', $estados);
+        }
+
+        // Filtro por cliente si se necesita
+        if ($request->has('id_cliente')) {
+            $query->where('id_cliente', $request->id_cliente);
+        }
+
+        // Ordenamiento (ej: fecha_programada:asc, updated_at:desc)
+        if ($request->filled('sort')) {
+            $sortParts = explode(':', $request->input('sort'));
+            $column = $sortParts[0];
+            $direction = $sortParts[1] ?? 'asc';
+            $query->orderBy($column, $direction);
+        } else {
+            $query->latest('fecha_creacion'); // fallback
+        }
+
+        // Límite de resultados (sin paginación)
+        if ($request->has('limite')) {
+            $ordenes = $query->take($request->limite)->get();
+        } else {
+            // O usa paginación por defecto
+            $ordenes = $query->paginate($request->input('per_page', 15));
+        }
 
         return OrdenTrabajoResource::collection($ordenes);
     }
+
 
     /**
      * Store a newly created resource in storage.
@@ -75,10 +104,10 @@ class OrdenTrabajoController extends Controller
             // Cargar relaciones para la respuesta
             $ordenTrabajo->load(['cliente', 'ubicacion', 'empleado', 'detalles.servicio']);
 
-             return response()->json([
+            return response()->json([
                 'message' => 'Orden de trabajo creada exitosamente.',
                 'data' => OrdenTrabajoResource::make($ordenTrabajo)
-             ], 201); // Código 201 Created
+            ], 201); // Código 201 Created
 
         } catch (\Throwable $e) {
             // Revertir transacción en caso de error
@@ -96,7 +125,7 @@ class OrdenTrabajoController extends Controller
      */
     public function show(OrdenTrabajo $ordenTrabajo) // Usa Route Model Binding
     {
-         // Cargar todas las relaciones necesarias para la vista detallada
+        // Cargar todas las relaciones necesarias para la vista detallada
         $ordenTrabajo->load(['cliente', 'ubicacion', 'empleado', 'detalles.servicio']);
         return OrdenTrabajoResource::make($ordenTrabajo);
     }
@@ -116,15 +145,14 @@ class OrdenTrabajoController extends Controller
             $ordenTrabajo->update($validatedData);
 
             // Recargar relaciones por si algo cambió (ej. empleado)
-             $ordenTrabajo->load(['cliente', 'ubicacion', 'empleado', 'detalles.servicio']);
+            $ordenTrabajo->load(['cliente', 'ubicacion', 'empleado', 'detalles.servicio']);
 
             return response()->json([
                 'message' => 'Orden de trabajo actualizada exitosamente.',
                 'data' => OrdenTrabajoResource::make($ordenTrabajo)
-             ]);
-
+            ]);
         } catch (\Throwable $e) {
-             Log::error("Error al actualizar orden de trabajo {$ordenTrabajo->id_orden}: {$e->getMessage()}");
+            Log::error("Error al actualizar orden de trabajo {$ordenTrabajo->id_orden}: {$e->getMessage()}");
             return response()->json([
                 'message' => 'Error al actualizar la orden de trabajo.',
                 'error' => $e->getMessage()
@@ -138,15 +166,24 @@ class OrdenTrabajoController extends Controller
     public function destroy(OrdenTrabajo $ordenTrabajo)
     {
         try {
-             $ordenTrabajo->delete(); // Las FK con onDelete('cascade') borrarán detalles
-             return response()->json(['message' => 'Orden de trabajo eliminada exitosamente.'], Response::HTTP_OK); // O HTTP_NO_CONTENT (204) sin body
+            $ordenTrabajo->delete(); // Las FK con onDelete('cascade') borrarán detalles
+            return response()->json(['message' => 'Orden de trabajo eliminada exitosamente.'], Response::HTTP_OK); // O HTTP_NO_CONTENT (204) sin body
         } catch (\Throwable $e) {
-             Log::error("Error al eliminar orden de trabajo {$ordenTrabajo->id_orden}: {$e->getMessage()}");
-             // Considerar si hay restricciones que impidan borrar (ej. facturada)
+            Log::error("Error al eliminar orden de trabajo {$ordenTrabajo->id_orden}: {$e->getMessage()}");
+            // Considerar si hay restricciones que impidan borrar (ej. facturada)
             return response()->json([
                 'message' => 'Error al eliminar la orden de trabajo.',
                 'error' => $e->getMessage() // Podría ser un error de restricción FK si onDelete no es CASCADE
             ], 500);
         }
+    }
+
+    public function cambiarEstado(Request $request, $id)
+    {
+        $orden = OrdenTrabajo::findOrFail($id);
+        $orden->estado = $request->input('estado');
+        $orden->save();
+
+        return response()->json(['message' => 'Estado actualizado']);
     }
 }

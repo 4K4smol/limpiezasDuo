@@ -2,39 +2,23 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
-use App\Models\Cliente; // Asegúrate que tu modelo Cliente está aquí
+use App\Models\Cliente;
+use App\Models\UbicacionCliente;
 
 class ClienteSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        // --- Limpieza Opcional ---
-        // Descomenta si quieres vaciar la tabla antes de sembrar.
-        // CUIDADO: Esto borra todos los clientes existentes.
-        // DB::statement('SET FOREIGN_KEY_CHECKS=0;'); // Deshabilitar revisión FK temporalmente
-        // Cliente::truncate(); // Vaciar la tabla eficientemente
-        // DB::statement('SET FOREIGN_KEY_CHECKS=1;'); // Rehabilitar revisión FK
-        // Alternativa más segura si truncate da problemas con FKs:
-        // DB::table('clientes')->delete();
+        // --- Crear Clientes (manual o con factory) ---
+        $clientes = [];
 
-
-        // --- Crear Clientes ---
-
-        // Opción 1: Usando Factory (Recomendado si tienes una definida)
-        // Asegúrate de tener un ClienteFactory: php artisan make:factory ClienteFactory --model=Cliente
         if (class_exists(\Database\Factories\ClienteFactory::class)) {
-             Cliente::factory()->count(5)->create();
-             $this->command->info('5 Clientes creados usando Factory.');
+            $clientes = Cliente::factory()->count(5)->create();
+            $this->command->info('5 Clientes creados usando Factory.');
         } else {
-             // Opción 2: Creación Manual (si no tienes factory)
-             Cliente::firstOrCreate(
-                ['cif' => 'A12345678'], // Campo único para evitar duplicados al re-ejecutar
+            $clientes[] = Cliente::firstOrCreate(
+                ['cif' => 'A12345678'],
                 [
                     'razon_social' => 'Empresa Ejemplo Uno S.L.',
                     'nombre_comercial' => 'Ejemplo Uno',
@@ -44,11 +28,11 @@ class ClienteSeeder extends Seeder
                     'provincia' => 'Madrid',
                     'telefono' => '910000001',
                     'email' => 'contacto@ejemplouno.es'
-                    // ... otros campos necesarios
                 ]
-             );
-              Cliente::firstOrCreate(
-                ['cif' => 'B87654321'], // Campo único
+            );
+
+            $clientes[] = Cliente::firstOrCreate(
+                ['cif' => 'B87654321'],
                 [
                     'razon_social' => 'Servicios Ficticios Dos S.A.',
                     'nombre_comercial' => 'Ficticios Dos',
@@ -58,10 +42,31 @@ class ClienteSeeder extends Seeder
                     'provincia' => 'Cantabria',
                     'telefono' => '942000002',
                     'email' => 'info@ficticiosdos.com'
-                    // ... otros campos necesarios
                 ]
-             );
-              $this->command->info('Clientes creados manualmente (o ya existían).');
+            );
+
+            $this->command->info('Clientes creados manualmente (o ya existían).');
+        }
+
+        // --- Añadir de 1 a 3 ubicaciones a cada cliente ---
+        foreach ($clientes as $cliente) {
+            // Evitar duplicados si el cliente ya tiene ubicaciones
+            if ($cliente->ubicaciones()->exists()) {
+                $this->command->warn("El cliente {$cliente->nombre_comercial} ya tiene ubicaciones.");
+                continue;
+            }
+
+            $cantidadUbicaciones = rand(1, 3);
+            for ($i = 1; $i <= $cantidadUbicaciones; $i++) {
+                UbicacionCliente::create([
+                    'id_cliente' => $cliente->id_cliente,
+                    'complejidad' => ['A', 'B', 'C'][array_rand(['A', 'B', 'C'])], // Asegúrate de tener estas en la tabla `complejidades`
+                    'direccion' => "Calle nº $i - Cliente {$cliente->id_cliente}",
+                    'descripcion' => "Ubicación generada automáticamente nº $i",
+                ]);
+            }
+
+            $this->command->info("Cliente '{$cliente->nombre_comercial}' tiene ahora $cantidadUbicaciones ubicaciones.");
         }
     }
 }

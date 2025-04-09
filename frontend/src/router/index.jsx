@@ -9,6 +9,8 @@ import FacturaPage from '../modules/facturas/FacturaPage';
 // ... importar otras páginas de módulos privados
 import PrivateRoute from './PrivateRoute'; // El componente que protege rutas
 import NotFoundPage from '../pages/NotFoundPage';
+import OrdenTrabajoPage from '../modules/ordenesTrabajo/OrdenTrabajoPage';
+import NuevaOrden from '../modules/ordenesTrabajo/components/NuevaOrden';
 
 const router = createBrowserRouter([
   // --- Rutas Públicas ---
@@ -31,33 +33,36 @@ const router = createBrowserRouter([
   // --- Rutas Privadas ---
   {
     element: (
-      <PrivateRoute> {/* Envuelve el layout privado */}
+      <PrivateRoute>
         <PrivateLayout />
       </PrivateRoute>
     ),
     children: [
       {
-        path: '/dashboard', // Ruta base del área privada
+        path: '/dashboard',
         element: <DashboardPage />,
       },
       {
         path: '/clientes',
         element: <ClientePage />,
-        // Puedes tener rutas anidadas aquí: /clientes/:id, /clientes/nuevo
       },
       {
         path: '/facturas',
         element: <FacturaPage />,
       },
-      // ... otras rutas privadas para cada módulo (ordenes, empleados, etc.)
+      {
+        path: '/ordenes-trabajo/nueva',
+        element: <NuevaOrden />, // 👈 Aquí va tu formulario
+      },
+      // Puedes añadir más: listado de órdenes, detalle, etc.
       {
         path: '/ordenes-trabajo',
-        // element: <OrdenTrabajoPage />,
+        element: <OrdenTrabajoPage />,
       },
       {
-         path: '/empleados',
-         // element: <EmpleadoPage />,
-      }
+        path: '/empleados',
+        // element: <EmpleadoPage />,
+      },
     ],
   },
   {

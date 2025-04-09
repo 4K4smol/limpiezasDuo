@@ -42,4 +42,9 @@ class Cliente extends Model
     {
         return $this->hasMany(Factura::class, 'id_cliente');
     }
+
+    public function ubicaciones()
+    {
+        return $this->hasMany(UbicacionCliente::class, 'id_ubicacion');
+    }
 }
