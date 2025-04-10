@@ -16,7 +16,9 @@ return new class extends Migration
             $table->date('fecha_creacion')->default(now());
             $table->date('fecha_programada')->nullable();
             $table->time('hora_programada')->nullable();
-            $table->string('estado', 50)->default('Pendiente');
+            $table->string('estado', 50)
+                ->default('Pendiente')
+                ->check("estado IN ('Pendiente', 'Completado', 'Cancelado')");
             $table->text('observaciones')->nullable();
             $table->timestamps();
 

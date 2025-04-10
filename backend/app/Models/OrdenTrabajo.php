@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Enums\EstadoOrden;
 
 class OrdenTrabajo extends Model
 {
@@ -28,7 +29,7 @@ class OrdenTrabajo extends Model
     protected $casts = [
         'fecha_creacion' => 'date',
         'fecha_programada' => 'date',
-        // 'hora_programada' => 'datetime:H:i', // O maneja como string
+        'estado' => EstadoOrden::class,
     ];
 
     public function cliente(): BelongsTo

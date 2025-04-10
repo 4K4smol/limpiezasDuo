@@ -12,6 +12,9 @@ use Illuminate\Http\Request; // Añadido para el index
 use Illuminate\Http\Response; // Añadido para destroy
 use Illuminate\Support\Facades\DB; // Para transacciones
 use Illuminate\Support\Facades\Log; // Para logging de errores
+use Illuminate\Validation\Rules\Enum;
+use App\Enums\EstadoOrden;
+
 
 class OrdenTrabajoController extends Controller
 {
@@ -70,7 +73,7 @@ class OrdenTrabajoController extends Controller
         $validatedDetalles = $request->safe()->only('detalles')['detalles'];
 
         // Valor por defecto si no se proporciona el estado
-        $validatedOrden['estado'] = $validatedOrden['estado'] ?? 'Pendiente';
+        $validatedOrden['estado'] = $validatedOrden['estado'] ?? EstadoOrden::Pendiente;
         $validatedOrden['fecha_creacion'] = now()->toDateString();
 
         // Iniciar transacción para asegurar la integridad
@@ -180,8 +183,12 @@ class OrdenTrabajoController extends Controller
 
     public function cambiarEstado(Request $request, $id)
     {
+        $validated = $request->validate([
+            'estado' => ['required', new Enum(EstadoOrden::class)],
+        ]);
+
         $orden = OrdenTrabajo::findOrFail($id);
-        $orden->estado = $request->input('estado');
+        $orden->estado = EstadoOrden::from($validated['estado']);
         $orden->save();
 
         return response()->json(['message' => 'Estado actualizado']);

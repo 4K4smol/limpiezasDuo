@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             ClienteSeeder::class,
             FacturaSeeder::class,
             UsuarioSeeder::class,
+            InventarioSeeder::class,
         ]);
     }
 }

@@ -11,6 +11,7 @@ import PrivateRoute from './PrivateRoute'; // El componente que protege rutas
 import NotFoundPage from '../pages/NotFoundPage';
 import OrdenTrabajoPage from '../modules/ordenesTrabajo/OrdenTrabajoPage';
 import NuevaOrden from '../modules/ordenesTrabajo/components/NuevaOrden';
+import InventarioPage from '../modules/inventario/InventarioPage';
 
 const router = createBrowserRouter([
   // --- Rutas Públicas ---
@@ -41,6 +42,10 @@ const router = createBrowserRouter([
       {
         path: '/dashboard',
         element: <DashboardPage />,
+      },
+      {
+        path: '/inventario',
+        element: <InventarioPage />
       },
       {
         path: '/clientes',

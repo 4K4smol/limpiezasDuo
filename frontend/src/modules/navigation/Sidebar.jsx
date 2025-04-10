@@ -9,6 +9,9 @@ const Sidebar = () => {
         <NavLink to="/dashboard" className={({ isActive }) => isActive ? "font-semibold text-yellow-300" : ""}>
           Dashboard
         </NavLink>
+        <NavLink to="/inventario" className={({ isActive }) => isActive ? "font-semibold text-yellow-300" : ""}>
+          Inventario
+        </NavLink>
         <NavLink to="/clientes" className={({ isActive }) => isActive ? "font-semibold text-yellow-300" : ""}>
           Clientes
         </NavLink>
