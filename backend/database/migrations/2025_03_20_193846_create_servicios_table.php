@@ -10,13 +10,20 @@ return new class extends Migration
     {
         Schema::create('servicios', function (Blueprint $table) {
             $table->id('id_servicio');
-            $table->string('nombre_servicio', 150);
+            $table->string('nombre', 150)->unique();
             $table->text('descripcion')->nullable();
             $table->decimal('precio_hora', 10, 2)->default(0.00);
-            $table->tinyInteger('activo')->default(1);
-            $table->foreignId('servicio_padre_id')->nullable()->constrained('servicios', 'id_servicio')->onDelete('set null');
+            $table->boolean('is_active')->default(true);
+
+            // Clave foránea a sí misma
+            $table->foreignId('parent_id_servicio')
+                  ->nullable()
+                  ->constrained('servicios', 'id_servicio')
+                  ->nullOnDelete();
+
             $table->timestamps();
         });
+
     }
 
     public function down(): void

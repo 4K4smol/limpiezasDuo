@@ -3,105 +3,41 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Servicio;
 use App\Http\Requests\ServicioRequest\StoreServicioRequest;
 use App\Http\Requests\ServicioRequest\UpdateServicioRequest;
 use App\Http\Resources\ServicioResource;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Log;
+use App\Models\Servicio;
+use Illuminate\Http\JsonResponse;
 
 class ServicioController extends Controller
 {
-    public function index(Request $request)
+    public function index(): JsonResponse
     {
-        if ($request->query('hierarchy') === 'true') {
-            $servicios = Servicio::with('subservicios')
-                ->whereNull('servicio_padre_id')
-                ->where('activo', 1)
-                ->orderBy('nombre_servicio')
-                ->get();
-
-            return ServicioResource::collection($servicios);
-        }
-
-        if ($request->query('all') === 'true') {
-            return ServicioResource::collection(
-                Servicio::where('activo', true)->orderBy('nombre_servicio')->get()
-            );
-        }
-
-        if ($request->query('all_with_inactive') === 'true') {
-            return ServicioResource::collection(
-                Servicio::orderBy('nombre_servicio')->get()
-            );
-        }
-
-        return ServicioResource::collection(
-            Servicio::orderBy('nombre_servicio')->paginate($request->input('per_page', 15))
-        );
+        $servicios = Servicio::with('hijos')->whereNull('parent_id_servicio')->get();
+        return response()->json(ServicioResource::collection($servicios));
     }
 
-    public function store(StoreServicioRequest $request)
+    public function store(StoreServicioRequest $request): JsonResponse
     {
-        try {
-            $data = $request->validated();
-            $data['activo'] = $data['activo'] ?? true;
-
-            $servicio = Servicio::create($data);
-
-            return response()->json([
-                'message' => 'Servicio creado exitosamente.',
-                'data' => new ServicioResource($servicio)
-            ], Response::HTTP_CREATED);
-        } catch (\Throwable $e) {
-            Log::error("Error al crear servicio: " . $e->getMessage());
-            return response()->json([
-                'message' => 'Error al crear el servicio.',
-                'error' => $e->getMessage()
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
+        $servicio = Servicio::create($request->validated());
+        return response()->json(new ServicioResource($servicio), 201);
     }
 
-    public function show(Servicio $servicio)
+    public function show(Servicio $servicio): JsonResponse
     {
-        $servicio->load('subservicios');
-
-        return new ServicioResource($servicio);
+        $servicio->load('padre', 'hijos');
+        return response()->json(new ServicioResource($servicio));
     }
 
-    public function update(UpdateServicioRequest $request, Servicio $servicio)
+    public function update(UpdateServicioRequest $request, Servicio $servicio): JsonResponse
     {
-        try {
-            $servicio->update($request->validated());
-
-            return response()->json([
-                'message' => 'Servicio actualizado exitosamente.',
-                'data' => new ServicioResource($servicio->fresh())
-            ]);
-        } catch (\Throwable $e) {
-            Log::error("Error al actualizar servicio {$servicio->id_servicio}: " . $e->getMessage());
-            return response()->json([
-                'message' => 'Error al actualizar el servicio.',
-                'error' => $e->getMessage()
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
+        $servicio->update($request->validated());
+        return response()->json(new ServicioResource($servicio));
     }
 
-    public function destroy(Servicio $servicio)
+    public function destroy(Servicio $servicio): JsonResponse
     {
-        try {
-            $servicio->delete();
-
-            return response()->json([
-                'message' => 'Servicio eliminado exitosamente.'
-            ]);
-        } catch (\Throwable $e) {
-            Log::error("Error al eliminar servicio {$servicio->id_servicio}: " . $e->getMessage());
-            return response()->json([
-                'message' => 'Error al eliminar el servicio.',
-                'error' => $e->getMessage()
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
+        $servicio->delete();
+        return response()->json(null, 204);
     }
 }

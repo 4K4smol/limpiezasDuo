@@ -3,8 +3,6 @@
 namespace App\Http\Requests\ServicioRequest;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
-use App\Models\Servicio;
 
 class UpdateServicioRequest extends FormRequest
 {
@@ -15,31 +13,32 @@ class UpdateServicioRequest extends FormRequest
 
     public function rules(): array
     {
-        $servicioId = $this->route('servicio') instanceof Servicio
-            ? $this->route('servicio')->id_servicio
-            : $this->route('servicio');
-
         return [
-            'nombre_servicio' => [
-                'sometimes', 'required', 'string', 'max:150',
-                Rule::unique('servicios', 'nombre_servicio')->ignore($servicioId, 'id_servicio')
-            ],
-            'descripcion' => ['sometimes', 'nullable', 'string'],
-            'precio_hora' => ['sometimes', 'required', 'numeric', 'min:0', 'regex:/^\d+(\.\d{1,2})?$/'],
-            'activo' => ['sometimes', 'required', 'boolean'],
-            'servicio_padre_id' => ['nullable', 'exists:servicios,id_servicio'],
+            'nombre' => 'sometimes|required|string|max:150|unique:servicios,nombre,' . $this->route('servicio'),
+            'descripcion' => 'nullable|string',
+            'precio_hora' => 'sometimes|required|numeric|min:0',
+            'is_active' => 'boolean',
+            'parent_id_servicio' => 'nullable|exists:servicios,id_servicio',
         ];
     }
 
     public function messages(): array
     {
         return [
-            'nombre_servicio.required' => 'El nombre del servicio es obligatorio.',
-            'nombre_servicio.unique' => 'Ya existe otro servicio con este nombre.',
+            'nombre.required' => 'El nombre del servicio es obligatorio.',
+            'nombre.string' => 'El nombre del servicio debe ser una cadena de texto.',
+            'nombre.max' => 'El nombre del servicio no debe superar los 150 caracteres.',
+            'nombre.unique' => 'Ya existe un servicio con este nombre.',
+
+            'descripcion.string' => 'La descripción debe ser una cadena de texto.',
+
             'precio_hora.required' => 'El precio por hora es obligatorio.',
-            'precio_hora.regex' => 'El precio debe tener hasta dos decimales.',
-            'activo.boolean' => 'El campo activo debe ser verdadero o falso.',
-            'servicio_padre_id.exists' => 'El servicio padre seleccionado no existe.',
+            'precio_hora.numeric' => 'El precio por hora debe ser un valor numérico.',
+            'precio_hora.min' => 'El precio por hora debe ser al menos 0.',
+
+            'is_active.boolean' => 'El campo de estado debe ser verdadero o falso.',
+
+            'parent_id_servicio.exists' => 'El servicio padre seleccionado no existe.',
         ];
     }
 }
