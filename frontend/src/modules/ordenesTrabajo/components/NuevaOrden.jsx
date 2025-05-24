@@ -34,10 +34,8 @@ export default function NuevaOrden() {
                     axios.get(API_SERVICIOS_URL)
                 ]);
                 setClientes(clientesRes.data?.data || []);
-                setServicios(serviciosRes.data?.data || []);
+                setServicios(serviciosRes.data || []);
 
-                console.log('Clientes response:', clientesRes.data);
-                console.log('Servicios response:', serviciosRes.data);
             } catch (err) {
                 setError('Error al cargar los datos iniciales.');
             } finally {
@@ -215,10 +213,11 @@ export default function NuevaOrden() {
                             >
                                 <option value="">-- Servicio --</option>
                                 {servicios.map((s) => (
-                                    <option key={s.id_servicio} value={s.id_servicio}>
+                                    <option key={s.id} value={s.id}>
                                         {s.nombre}
                                     </option>
                                 ))}
+
                             </select>
                             <input
                                 type="number"

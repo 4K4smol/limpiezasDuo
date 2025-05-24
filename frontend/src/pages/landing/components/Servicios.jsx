@@ -5,7 +5,6 @@ import {
   InformationCircleIcon,
 } from "@heroicons/react/24/outline";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
-import { motion, AnimatePresence } from "framer-motion";
 import classNames from "classnames";
 
 /**
@@ -44,13 +43,8 @@ const EmptyState = () => (
 const ServiceCard = ({ servicio, hijos, isExpanded, onToggle }) => {
   const hasSubservices = hijos.length > 0;
 
-  const subVariants = {
-    collapsed: { height: 0, opacity: 0 },
-    open: { height: "auto", opacity: 1 },
-  };
-
   return (
-    <Card className="transition-shadow hover:shadow-xl">
+    <Card className="transition-shadow hover:shadow-xl ">
       <CardHeader
         onClick={hasSubservices ? onToggle : undefined}
         role={hasSubservices ? "button" : undefined}
@@ -64,7 +58,7 @@ const ServiceCard = ({ servicio, hijos, isExpanded, onToggle }) => {
           <SparklesIcon className="w-6 h-6 text-limpio-gold" />
         </div>
         <div className="flex-1 space-y-1">
-          <h4 className="text-lg font-semibold text-limpio-dark truncate">
+          <h4 className="text-lg font-semibold text-limpio-dark">
             {servicio.nombre}
           </h4>
           {servicio.descripcion && (
@@ -83,40 +77,41 @@ const ServiceCard = ({ servicio, hijos, isExpanded, onToggle }) => {
         )}
       </CardHeader>
 
-      <AnimatePresence initial={false}>
-        {hasSubservices && isExpanded && (
-          <motion.div
-            key="content"
-            initial="collapsed"
-            animate="open"
-            exit="collapsed"
-            variants={subVariants}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="overflow-hidden"
-          >
-            <CardContent className="space-y-4 bg-gray-50/50 pt-4">
-              <h5 className="text-sm font-semibold text-limpio-dark">
-                Sub‑servicios incluidos
-              </h5>
-              <ul className="space-y-3">
-                {hijos.map((sub) => (
-                  <li key={sub.id} className="relative pl-5">
-                    <span className="absolute left-0 top-1.5 h-2 w-2 rounded-full bg-limpio-gold/50" />
-                    <p className="text-sm font-medium text-gray-800">
-                      {sub.nombre}
-                    </p>
-                    {sub.descripcion && (
-                      <p className="text-xs text-gray-600 mt-0.5">
-                        {sub.descripcion}
-                      </p>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </motion.div>
+      {/* Sin AnimatePresence ni motion.div */}
+      <div
+        className={classNames(
+          "transition-all duration-300 overflow-hidden",
+          hasSubservices
+            ? isExpanded
+              ? "max-h-96 opacity-100"
+              : "max-h-0 opacity-0"
+            : ""
         )}
-      </AnimatePresence>
+      >
+        {hasSubservices && (
+          <CardContent className="space-y-4 bg-gray-50/50 pt-4">
+            <h5 className="text-sm font-semibold text-limpio-dark">
+              Sub‑servicios incluidos
+            </h5>
+            <ul className="space-y-3">
+              {hijos.map((sub) => (
+                <li key={sub.id} className="relative pl-5">
+                  <span className="absolute left-0 top-1.5 h-2 w-2 rounded-full bg-limpio-gold/50" />
+                  <p className="text-sm font-medium text-gray-800">
+                    {sub.nombre}
+                  </p>
+                  {sub.descripcion && (
+                    <p className="text-xs text-gray-600 mt-0.5">
+                      {sub.descripcion}
+                    </p>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        )}
+      </div>
+
     </Card>
   );
 };
