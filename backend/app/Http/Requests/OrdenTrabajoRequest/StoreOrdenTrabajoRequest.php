@@ -19,7 +19,6 @@ class StoreOrdenTrabajoRequest extends FormRequest
         return [
             'id_cliente' => ['required', 'integer', Rule::exists('clientes', 'id_cliente')],
             'id_ubicacion' => ['required', 'integer', Rule::exists('ubicaciones_cliente', 'id_ubicacion')],
-            'id_empleado' => ['nullable', 'integer', Rule::exists('empleados', 'id_empleado')],
             'fecha_programada' => ['nullable', 'date_format:Y-m-d'],
             'hora_programada' => ['nullable', 'date_format:H:i', 'required_with:fecha_programada'],
             'estado' => ['sometimes', new Enum(EstadoOrden::class)],

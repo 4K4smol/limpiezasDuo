@@ -216,21 +216,27 @@ export default function NuevoServicioPeriodico() {
                             </div>
 
                             {/* ubicaciones (selector nativo múltiple) */}
-                            <select
-                                id={`ubicaciones-${idx}`}
-                                value={l.id_ubicacion}
-                                onChange={(e) => setLinea(idx, "id_ubicacion", e.target.value)}
-                                className="w-full border p-2 rounded"
-                                disabled={!ubicaciones.length}
-                                required
-                            >
-                                <option value="" disabled>Selecciona una ubicación</option>
-                                {ubicaciones.map((u) => (
-                                    <option key={u.id_ubicacion} value={u.id_ubicacion}>
-                                        {u.direccion}
-                                    </option>
-                                ))}
-                            </select>
+                            <div>
+                                <label htmlFor={`ubicaciones-${idx}`} className="block mb-1">
+                                    Ubicación
+                                </label>
+                                <select
+                                    id={`ubicaciones-${idx}`}
+                                    value={l.id_ubicacion}
+                                    onChange={(e) => setLinea(idx, "id_ubicacion", e.target.value)}
+                                    className="w-full border p-2 rounded"
+                                    disabled={!ubicaciones.length}
+                                    required
+                                >
+                                    <option value="" disabled>Selecciona una ubicación</option>
+                                    {ubicaciones.map((u) => (
+                                        <option key={u.id_ubicacion} value={u.id_ubicacion}>
+                                            {u.direccion}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
 
 
 

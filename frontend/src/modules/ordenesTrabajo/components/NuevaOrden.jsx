@@ -39,7 +39,7 @@ export default function NuevaOrden() {
                     axios.get(API_SERVICIOS_URL)
                 ]);
                 setClientes(clientesRes.data?.data || []);
-                setServicios(serviciosRes.data?.data || []); // Assuming serviciosRes.data.data, adjust if it's serviciosRes.data
+                setServicios(serviciosRes.data || []);
 
             } catch (err) {
                 console.error("Error fetching initial data:", err);
