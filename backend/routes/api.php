@@ -11,6 +11,7 @@ use App\Http\Controllers\API\FacturaController;
 use App\Http\Controllers\Api\AuthController; // Asegúrate de crear este controlador
 use App\Http\Controllers\Api\OrdenTrabajoController;
 use App\Http\Controllers\Api\ServicioController;
+use App\Http\Controllers\Api\ServicioPeriodicoController;
 
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -37,7 +38,13 @@ Route::apiResource('ordenes-trabajo', OrdenTrabajoController::class)->parameters
 ]);
 Route::patch('/ordenes-trabajo/{id}/estado', [OrdenTrabajoController::class, 'cambiarEstado']);
 
-
+Route::prefix('servicios-periodicos')->group(function () {
+    Route::get('/', [ServicioPeriodicoController::class, 'index']);
+    Route::get('/{id}', [ServicioPeriodicoController::class, 'show']);
+    Route::post('/', [ServicioPeriodicoController::class, 'store']);
+    Route::put('/{id}', [ServicioPeriodicoController::class, 'update']);
+    Route::post('/{sp}/generar-ordenes', [ServicioPeriodicoController::class, 'generarOrdenes']); // ← CORRECTO
+});
 
 Route::apiResource('facturas', FacturaController::class);
 
@@ -47,6 +54,7 @@ Route::prefix('clientes')->group(function () {
     Route::post('/', [ClienteController::class, 'store']);
     Route::put('/{id}', [ClienteController::class, 'update']);
     Route::patch('/{id}/toggle', [ClienteController::class, 'toggleActivo']);
+    Route::get('/{id}/ubicaciones', [ClienteController::class, 'ubicaciones']);
 });
 
 Route::prefix('empleados')->group(function () {

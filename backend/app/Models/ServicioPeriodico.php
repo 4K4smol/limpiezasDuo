@@ -2,35 +2,52 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Enums\PeriodicidadMensual;
+use Illuminate\Database\Eloquent\{Model};
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\{BelongsTo, HasMany};
 
 class ServicioPeriodico extends Model
 {
+    use HasFactory;
+
+    /* Tabla y claves ------------------------------------------------------- */
     protected $table = 'servicios_periodicos';
-    protected $primaryKey = 'id_servicio_periodico';
-    public $timestamps = true;
 
     protected $fillable = [
         'id_cliente',
-        'id_ubicacion',
         'periodicidad_mensual',
         'activo',
     ];
 
+    /* Casts ---------------------------------------------------------------- */
+    protected $casts = [
+        'activo'                => 'boolean',
+        'periodicidad_mensual'  => PeriodicidadMensual::class,
+    ];
+
+    /* Relaciones ----------------------------------------------------------- */
     public function cliente(): BelongsTo
     {
-        return $this->belongsTo(Cliente::class, 'id_cliente', 'id_cliente');
+        return $this->belongsTo(Cliente::class, 'id_cliente');
     }
 
-    public function ubicacion(): BelongsTo
+    public function programaciones(): HasMany
     {
-        return $this->belongsTo(UbicacionCliente::class, 'id_ubicacion', 'id_ubicacion');
+        return $this->hasMany(ServicioPeriodicoProgramacion::class, 'id_servicio_periodico');
     }
 
-    public function serviciosAsociados(): HasMany
+    /* Scopes --------------------------------------------------------------- */
+    public function scopeActivos($query)
     {
-        return $this->hasMany(ServicioPeriodicoServicio::class, 'id_servicio_periodico', 'id_servicio_periodico');
+        return $query->where('activo', true);
+    }
+
+    /* Accessors / Mutators ------------------------------------------------- */
+    /** Muestra el texto “1 | 2 | 4 veces/mes” en $contrato->frecuencia */
+    protected function frecuencia(): Attribute
+    {
+        return Attribute::get(fn () => $this->periodicidad_mensual->value . ' veces/mes');
     }
 }

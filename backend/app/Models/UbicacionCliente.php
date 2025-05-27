@@ -29,9 +29,9 @@ class UbicacionCliente extends Model
     }
 
     // Relación con servicios periódicos (si usas ese módulo)
-    public function serviciosPeriodicos()
+    public function programaciones()
     {
-        return $this->hasMany(ServicioPeriodico::class, 'id_ubicacion');
+        return $this->hasMany(ServicioPeriodicoProgramacion::class, 'id_ubicacion');
     }
 
     // Relación con órdenes de trabajo

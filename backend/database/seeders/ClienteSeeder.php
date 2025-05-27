@@ -48,7 +48,8 @@ class ClienteSeeder extends Seeder
             $this->command->info('Clientes creados manualmente (o ya existían).');
         }
 
-        // --- Añadir de 1 a 3 ubicaciones a cada cliente ---
+        $complejidades = ['A', 'B', 'C'];
+
         foreach ($clientes as $cliente) {
             // Evitar duplicados si el cliente ya tiene ubicaciones
             if ($cliente->ubicaciones()->exists()) {
@@ -57,10 +58,11 @@ class ClienteSeeder extends Seeder
             }
 
             $cantidadUbicaciones = rand(1, 3);
+
             for ($i = 1; $i <= $cantidadUbicaciones; $i++) {
                 UbicacionCliente::create([
                     'id_cliente' => $cliente->id_cliente,
-                    'complejidad' => ['A', 'B', 'C'][array_rand(['A', 'B', 'C'])], // Asegúrate de tener estas en la tabla `complejidades`
+                    'complejidad' => $complejidades[array_rand($complejidades)],
                     'direccion' => "Calle nº $i - Cliente {$cliente->id_cliente}",
                     'descripcion' => "Ubicación generada automáticamente nº $i",
                 ]);

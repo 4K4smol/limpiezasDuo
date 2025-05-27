@@ -7,7 +7,7 @@ use App\Models\Cliente;
 use Illuminate\Http\Request;
 use App\Http\Requests\ClienteRequest;
 use App\Http\Resources\ClienteResource;
-
+use App\Models\UbicacionCliente;
 
 class ClienteController extends Controller
 {
@@ -50,5 +50,11 @@ class ClienteController extends Controller
             'message' => 'Estado actualizado correctamente.',
             'activo' => $cliente->activo
         ]);
+    }
+
+    public function ubicaciones($id)
+    {
+        $ubicaciones = UbicacionCliente::where('id_cliente', $id)->get();
+        return response()->json($ubicaciones);
     }
 }
