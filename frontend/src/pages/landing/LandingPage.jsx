@@ -2,7 +2,7 @@ import React from 'react';
 
 import Header from './components/Header';
 import Hero from './components/Hero';
-import Servicios from './components/Servicios';
+import Servicios from './components/Servicios/Servicios';
 import SobreMi from './components/SobreMi';
 import Contacto from './components/Contacto';
 import Footer from './components/Footer';

@@ -31,10 +31,4 @@ class Servicio extends Model
     {
         return $this->belongsTo(Servicio::class, 'parent_id_servicio', 'id_servicio');
     }
-
-    // Relación con servicios periódicos concretos
-    public function serviciosPeriodicosServicio(): HasMany
-    {
-        return $this->hasMany(ServicioPeriodicoServicio::class, 'id_servicio', 'id_servicio');
-    }
 }
