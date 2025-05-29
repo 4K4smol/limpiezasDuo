@@ -70,7 +70,7 @@ Route::prefix('inventario')->group(function () {
     Route::get('/{id}', [InventarioController::class, 'show']);
     Route::post('/', [InventarioController::class, 'store']);
     Route::put('/{id}', [InventarioController::class, 'update']);
-    Route::patch('/{id}/toggle', [InventarioController::class, 'toggleActivo']);
+    Route::post('/{id}/toggle', [InventarioController::class, 'toggleActivo']);
 });
 
 Route::prefix('complejidades')->group(function () {

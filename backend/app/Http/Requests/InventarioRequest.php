@@ -29,7 +29,7 @@ class InventarioRequest extends FormRequest
         return [
             'nombre_item.required' => 'El nombre del producto es obligatorio.',
             'cantidad_actual.min'  => 'La cantidad no puede ser negativa.',
-            'stock_minimo.min'     => 'El stock mínimo no puede ser negativo.',
+            'stock_minimo.min' => 'El stock no puede ser negativo.',
         ];
     }
 }
