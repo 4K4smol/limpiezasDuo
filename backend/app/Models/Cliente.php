@@ -4,11 +4,16 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Traits\BelongsToTenant;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use App\Models\Servicio;
 
 class Cliente extends Model
 {
-
     use HasFactory;
+    use SoftDeletes;
+    use BelongsToTenant;
 
 
     protected $table = 'clientes';
@@ -21,8 +26,7 @@ class Cliente extends Model
         'ciudad',
         'telefono',
         'email',
-        'fecha_registro',
-        'activo'
+        'tenant_id'
     ];
 
     // Relación 1:N con contactos_empresas
@@ -46,5 +50,12 @@ class Cliente extends Model
     public function ubicaciones()
     {
         return $this->hasMany(UbicacionCliente::class, 'id_ubicacion');
+    }
+
+    public function servicios(): BelongsToMany
+    {
+        return $this->belongsToMany(Servicio::class, 'cliente_servicio', 'cliente_id', 'servicio_id')
+            ->withPivot(['precio_negociado', 'condiciones', 'vigencia_desde', 'vigencia_hasta'])
+            ->withTimestamps();
     }
 }
