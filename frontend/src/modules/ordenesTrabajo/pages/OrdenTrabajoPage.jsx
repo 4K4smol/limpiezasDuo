@@ -1,6 +1,6 @@
 // src/ordenesTrabajo/components/OrdenTrabajoPage.jsx
 import React, { useEffect, useState } from "react";
-import axios from "../../services/axios";
+import axios from "../../../services/axios";
 import { useNavigate } from "react-router-dom";
 
 const OrdenTrabajoPage = () => {

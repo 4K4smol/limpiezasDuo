@@ -12,21 +12,21 @@ import PrivateRoute from "./PrivateRoute";
 import NotFoundPage from "../pages/NotFoundPage";
 
 /* ---- Lazy‑loaded vistas públicas ---- */
-const LandingPage = React.lazy(() => import("../pages/landing/LandingPage"));
-const LoginPage = React.lazy(() => import("../modules/auth/LoginPage"));
+const LandingPage = React.lazy(() => import("../modules/landing/pages/LandingPage"));
+const LoginPage = React.lazy(() => import("../modules/auth/pages/LoginPage"));
 
 /* ---- Lazy‑loaded vistas privadas ---- */
-const DashboardPage = React.lazy(() => import("../modules/dashboard/DashboardPage"));
-const InventarioPage = React.lazy(() => import("../modules/inventario/InventarioPage"));
-const ClientePage = React.lazy(() => import("../modules/clientes/ClientePage"));
-const FacturaPage = React.lazy(() => import("../modules/facturas/FacturaPage"));
+const DashboardPage = React.lazy(() => import("../modules/dashboard/pages/DashboardPage"));
+const InventarioPage = React.lazy(() => import("../modules/inventario/pages/InventarioPage"));
+const ClientePage = React.lazy(() => import("../modules/clientes/pages/ClientePage"));
+const FacturaPage = React.lazy(() => import("../modules/facturas/pages/FacturaPage"));
 
 /* Órdenes puntuales */
-const OrdenTrabajoPage = React.lazy(() => import("../modules/ordenesTrabajo/OrdenTrabajoPage"));
+const OrdenTrabajoPage = React.lazy(() => import("../modules/ordenesTrabajo/pages/OrdenTrabajoPage"));
 const NuevaOrden = React.lazy(() => import("../modules/ordenesTrabajo/components/NuevaOrden"));
 
 /* Servicios periódicos */
-const ServicioPeriodicoPage = React.lazy(() => import("../modules/serviciosPeriodicos/ServicioPeriodicoPage"));
+const ServicioPeriodicoPage = React.lazy(() => import("../modules/serviciosPeriodicos/pages/ServicioPeriodicoPage"));
 const NuevoServicioPeriodico = React.lazy(() => import("../modules/serviciosPeriodicos/components/NuevoServicioPeriodico"));
 
 /* ----------------------------------------------------------------------------- */

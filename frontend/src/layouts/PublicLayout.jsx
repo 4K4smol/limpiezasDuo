@@ -2,8 +2,8 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 // Importa los componentes Header/Footer que ya tienes (pero quizás necesitas
 // versiones específicas si son diferentes a los del área privada)
-import Header from '../pages/landing/components/Header'; // Asegúrate que sea el correcto
-import Footer from '../pages/landing/components/Footer'; // Asegúrate que sea el correcto
+import Header from '../modules/landing/components/Header'; // Asegúrate que sea el correcto
+import Footer from '../modules/landing/components/Footer'; // Asegúrate que sea el correcto
 
 function PublicLayout() {
   return (
