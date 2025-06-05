@@ -1,29 +1,71 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { facturaService } from '../services/facturaService';
+import FacturaForm from '../components/FacturaForm';
 
-const FacturaPage = () => {
+export default function FacturaPage() {
+  const [facturas, setFacturas] = useState([]);
+  const [dialog, setDialog] = useState({ open: false, data: null });
+
+  const loadFacturas = () => facturaService.list().then(setFacturas).catch(console.error);
+
+  useEffect(() => {
+    loadFacturas();
+  }, []);
+
+  const openNew = () => setDialog({ open: true, data: null });
+  const closeForm = () => setDialog({ open: false, data: null });
+
+  const saveFactura = (data) => {
+    const action = data.id_factura
+      ? facturaService.update(data.id_factura, data)
+      : facturaService.create(data);
+    action.then(() => {
+      loadFacturas();
+      closeForm();
+    });
+  };
+
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4 text-purple-800">Facturas</h1>
+    <section className="p-6 space-y-6">
+      <header className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Facturas</h1>
+        <button onClick={openNew} className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">
+          Nueva Factura
+        </button>
+      </header>
 
-      <div className="bg-white rounded shadow p-4">
-        <p className="text-gray-700">
-          Aquí podrás gestionar todas las facturas: ver, crear, editar y descargar.
-        </p>
-
-        {/* Área para botones o futuras acciones */}
-        <div className="mt-6">
-          <button className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">
-            Nueva Factura
-          </button>
-        </div>
-
-        {/* Área donde puedes meter una tabla de facturas en el futuro */}
-        <div className="mt-6">
-          <p className="text-gray-500 italic">Todavía no hay facturas creadas.</p>
-        </div>
+      <div className="overflow-x-auto bg-white rounded shadow">
+        <table className="min-w-full text-sm">
+          <thead className="bg-gray-100 text-left">
+            <tr>
+              <th className="p-3">Número</th>
+              <th className="p-3">Cliente</th>
+              <th className="p-3 text-right">Total</th>
+              <th className="p-3">Fecha</th>
+            </tr>
+          </thead>
+          <tbody>
+            {facturas.length > 0 ? (
+              facturas.map((f) => (
+                <tr key={f.id_factura} className="border-t hover:bg-gray-50">
+                  <td className="p-3">{f.numero_factura}</td>
+                  <td className="p-3">{f.cliente?.razon_social || f.cliente?.nombre || f.id_cliente}</td>
+                  <td className="p-3 text-right">{f.total_factura.toFixed(2)}</td>
+                  <td className="p-3">{f.fecha_emision}</td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={4} className="p-4 text-center text-gray-500">
+                  No hay facturas registradas
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
-    </div>
-  );
-};
 
-export default FacturaPage;
+      <FacturaForm open={dialog.open} onClose={closeForm} onSave={saveFactura} initialValues={dialog.data} />
+    </section>
+  );
+}

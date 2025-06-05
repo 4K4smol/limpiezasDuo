@@ -15,9 +15,9 @@ class UpdateFacturaRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id_cliente' => 'sometimes|exists:clientes,id',
+            'id_cliente' => 'sometimes|exists:clientes,id_cliente',
             'items' => 'sometimes|array|min:1',
-            'items.*.descripcion' => 'required_with:items|string|max:255',
+            'items.*.descripcion_concepto' => 'required_with:items|string|max:255',
             'items.*.cantidad' => 'required_with:items|numeric|min:0.01',
             'items.*.precio_unitario' => 'required_with:items|numeric|min:0',
 
@@ -32,7 +32,7 @@ class UpdateFacturaRequest extends FormRequest
     {
         return [
             'id_cliente.exists' => 'El cliente seleccionado no existe.',
-            'items.*.descripcion.required_with' => 'Cada ítem debe tener una descripción.',
+            'items.*.descripcion_concepto.required_with' => 'Cada ítem debe tener una descripción.',
             'items.*.cantidad.required_with' => 'Cada ítem debe tener una cantidad.',
             'items.*.precio_unitario.required_with' => 'Cada ítem debe tener un precio unitario.',
         ];

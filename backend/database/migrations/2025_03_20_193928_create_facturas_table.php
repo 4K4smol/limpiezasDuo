@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('facturas', function (Blueprint $table) {
             $table->id('id_factura');
-            $table->string('numero_factura', 20);
+            $table->string('numero_factura', 20)->unique();
             $table->unsignedBigInteger('id_cliente');
             $table->date('fecha_emision');
             $table->decimal('base_imponible', 10, 2);
