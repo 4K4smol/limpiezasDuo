@@ -28,14 +28,13 @@ class ClienteFactory extends Factory
 
         return [
             // --- USA LOS NOMBRES DE COLUMNA DE TU MODELO/TABLA ---
+            'tenant_id' => 1, // o el valor que corresponda según el tenant del sistema
             'razon_social' => $this->faker->unique()->company, // Cambiado de nombre_fiscal
             'cif' => $cif,
             'codigo_postal' => $this->faker->postcode,
             'ciudad' => $this->faker->city, // Cambiado de localidad
             'telefono' => $this->faker->optional(0.9)->e164PhoneNumber,
             'email' => $this->faker->unique()->safeEmail,
-            'fecha_registro' => $this->faker->dateTimeThisDecade(), // Añadido
-            'activo' => $this->faker->boolean(90), // Añadido (90% activos)
 
             // --- Columnas que NO están en tu modelo actual (comentadas/eliminadas) ---
             // 'nombre_comercial' => $this->faker->boolean(70) ? $attributes['razon_social'] : $this->faker->catchPhrase,
