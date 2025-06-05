@@ -6,6 +6,9 @@ import InventarioForm from '../components/InventarioForm';
 import InventoryTable from '../components/InventoryTable';
 import InventarioToolbar from '../components/InventarioToolbar';
 
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+
 // ============================
 // Notification
 // ============================
@@ -198,29 +201,44 @@ export default function InventarioPage() {
     setEditingItem(null);
   };
 
-  const exportToCSV = () => {
+  const exportToPDF = () => {
     if (!items.length) return showNotification('No hay datos para exportar', 'error');
     try {
-      const csv = [
-        ['ID', 'Nombre', 'Descripción', 'Cantidad Actual', 'Stock Mínimo', 'Unidad', 'Ubicación', 'Activo'],
-        ...items.map(i => [
+      const doc = new jsPDF();
+
+      // Título
+      doc.setFontSize(16);
+      doc.text('Inventario - LimpiezasDuo', 14, 20);
+
+      // Tabla
+      autoTable(doc, {
+        startY: 30,
+        head: [[
+          'ID', 'Nombre', 'Descripción', 'Cantidad Actual',
+          'Stock Mínimo', 'Unidad', 'Ubicación', 'Activo',
+        ]],
+        body: items.map(i => [
           i.id_item, i.nombre_item, i.descripcion || '', i.cantidad_actual,
           i.stock_minimo, i.unidad, i.ubicacion || '', i.activo ? 'Sí' : 'No',
         ]),
-      ].map(row => row.map(val => `"${String(val).replace(/"/g, '""')}"`).join(',')).join('\n');
+        styles: {
+          fontSize: 10,
+          cellPadding: 2,
+        },
+        headStyles: {
+          fillColor: [100, 0, 150], // Morado
+          textColor: 255,
+        },
+      });
 
-      const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = `inventario_${new Date().toISOString().slice(0, 10)}.csv`;
-      a.click();
-      URL.revokeObjectURL(a.href);
-
-      showNotification('Exportación completada');
-    } catch {
-      showNotification('Error al exportar', 'error');
+      doc.save(`inventario_${new Date().toISOString().slice(0, 10)}.pdf`);
+      showNotification('Exportación a PDF completada');
+    } catch (error) {
+      console.error(error);
+      showNotification('Error al exportar a PDF', 'error');
     }
   };
+
 
   // Estilo animación notificación
   useEffect(() => {
@@ -272,7 +290,7 @@ export default function InventarioPage() {
           onSearchChange={setSearchTerm}
           filterStatus={filterStatus}
           onFilterChange={setFilterStatus}
-          onExport={exportToCSV}
+          onExport={exportToPDF}
           onAddItem={handleAddItem}
           isLoading={isLoading || isSubmitting}
           itemCount={items.length}

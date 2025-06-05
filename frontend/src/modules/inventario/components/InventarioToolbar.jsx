@@ -53,7 +53,7 @@ export default function InventarioToolbar({
             disabled={isLoading || itemCount === 0}
           >
             <Download className="w-4 h-4" />
-            Exportar CSV
+            Exportar PDF
           </button>
 
           <button
