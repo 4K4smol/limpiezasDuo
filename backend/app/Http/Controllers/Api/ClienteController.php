@@ -39,6 +39,18 @@ class ClienteController extends Controller
         return new ClienteResource($cliente);
     }
 
+    // 🔥 Borrar un cliente
+    public function destroy($id)
+    {
+        $cliente = Cliente::findOrFail($id);
+        $cliente->delete();
+
+        return response()->json([
+            'message' => 'Cliente eliminado correctamente.'
+        ], 204); // 204 = No Content
+    }
+
+
     // 🔄 Activar/Desactivar un cliente
     public function toggleActivo($id)
     {

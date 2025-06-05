@@ -34,6 +34,16 @@ class InventarioController extends Controller
         return new InventarioResource($item);
     }
 
+    public function destroy($id)
+    {
+        $item = Inventario::findOrFail($id);
+        $item->delete();
+
+        return response()->json([
+            'message' => 'Ítem eliminado correctamente.'
+        ], 200);
+    }
+
     public function toggleActivo($id)
     {
         $item = Inventario::findOrFail($id);

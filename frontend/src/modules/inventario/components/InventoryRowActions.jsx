@@ -42,12 +42,12 @@ export default function InventoryRowActions({ item, onEdit, onToggleStatus, onDe
     };
 
     const handleToggleStatus = () => {
-        onToggleStatus(item);
+        onToggleStatus(item.id_item);
         setShowDropdown(false);
     };
 
     const handleDelete = () => {
-        onDelete(item);
+        onDelete(item.id_item);
         setShowDropdown(false);
     };
 
@@ -55,13 +55,13 @@ export default function InventoryRowActions({ item, onEdit, onToggleStatus, onDe
         if (triggerRef.current && dropdownRef.current) {
             const triggerRect = triggerRef.current.getBoundingClientRect();
             const dropdownHeight = dropdownRef.current.offsetHeight; // Altura real del dropdown
-            
+
             // Encuentra el contenedor scrollable más cercano o usa window
             let scrollableContainer = triggerRef.current.parentElement;
             while (scrollableContainer) {
                 const style = window.getComputedStyle(scrollableContainer);
                 if (style.overflowY === 'auto' || style.overflowY === 'scroll' || style.overflowX === 'auto' || style.overflowX === 'scroll') {
-                    break; 
+                    break;
                 }
                 if (scrollableContainer.tagName === 'BODY') { // Llegamos al body
                     scrollableContainer = window;
@@ -71,7 +71,7 @@ export default function InventoryRowActions({ item, onEdit, onToggleStatus, onDe
             }
             if (!scrollableContainer) scrollableContainer = window; // Fallback
 
-            const containerRect = (scrollableContainer === window) 
+            const containerRect = (scrollableContainer === window)
                 ? { top: 0, bottom: window.innerHeight, left: 0, right: window.innerWidth }
                 : scrollableContainer.getBoundingClientRect();
 
@@ -90,7 +90,7 @@ export default function InventoryRowActions({ item, onEdit, onToggleStatus, onDe
         }
         setShowDropdown(true);
     };
-    
+
     const closeDropdown = () => {
         setShowDropdown(false);
     };
@@ -113,8 +113,8 @@ export default function InventoryRowActions({ item, onEdit, onToggleStatus, onDe
             const dropdownHeight = dropdownRef.current.offsetHeight;
 
             let scrollableParent = triggerRef.current.closest('.-mx-4.-my-2.overflow-x-auto') || // Clase específica de tu tabla
-                                   triggerRef.current.closest('.overflow-x-auto') || // Genérico
-                                   document.body; // Fallback
+                triggerRef.current.closest('.overflow-x-auto') || // Genérico
+                document.body; // Fallback
 
             const viewportHeight = window.innerHeight;
             const parentRect = scrollableParent.getBoundingClientRect();
@@ -123,7 +123,7 @@ export default function InventoryRowActions({ item, onEdit, onToggleStatus, onDe
 
             const spaceBelowTrigger = parentBottom - triggerRect.bottom;
             const spaceAboveTrigger = triggerRect.top - parentTop;
-            
+
             let newPositionClasses = 'top-full mt-2 origin-top-right'; // Default
 
             if (spaceBelowTrigger < dropdownHeight && spaceAboveTrigger > dropdownHeight) {
@@ -198,11 +198,11 @@ export default function InventoryRowActions({ item, onEdit, onToggleStatus, onDe
                                 ${dropdownClasses} 
                                 transition-opacity duration-200 ease-out
                                 ${showDropdown ? 'opacity-100 pointer-events-auto animate-in' : 'opacity-0 pointer-events-none'
-                                }
+                        }
                                 ${dropdownClasses.includes('bottom-full') && showDropdown ? 'slide-in-from-bottom-2' : ''}
                                 ${dropdownClasses.includes('top-full') && showDropdown ? 'slide-in-from-top-2' : ''}
                               `}
-                    // Si usas tailwindcss-animate, las clases slide-in-* necesitan 'animate-in'
+                // Si usas tailwindcss-animate, las clases slide-in-* necesitan 'animate-in'
                 >
                     {/* Solo renderiza el contenido interno si el dropdown debe mostrarse, para optimizar */}
                     {showDropdown && (

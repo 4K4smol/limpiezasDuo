@@ -10,4 +10,13 @@ export default defineConfig({
       '@': path.resolve(__dirname, 'src'), // Esto hace que "@" apunte a la carpeta src
     },
   },
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000', // puerto de Laravel
+        changeOrigin: true,
+        secure: false,
+      },
+    },
+  },
 })

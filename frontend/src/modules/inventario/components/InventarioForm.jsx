@@ -171,9 +171,8 @@ export default function InventarioForm({
                 onChange={handleChange}
                 onBlur={handleBlur}
                 disabled={disabled || isLoading}
-                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-purple-500 ${
-                  errors[name] && touched[name] ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                }`}
+                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-purple-500 ${errors[name] && touched[name] ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                  }`}
               />
               {errors[name] && touched[name] && (
                 <p className="text-sm text-red-600 flex items-center gap-1">
@@ -202,9 +201,8 @@ export default function InventarioForm({
                 onChange={handleChange}
                 onBlur={handleBlur}
                 disabled={disabled || isLoading}
-                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-purple-500 ${
-                  errors[name] && touched[name] ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                }`}
+                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-purple-500 ${errors[name] && touched[name] ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                  }`}
               />
               {errors[name] && touched[name] && (
                 <p className="text-sm text-red-600 flex items-center gap-1">
