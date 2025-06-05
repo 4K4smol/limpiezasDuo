@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'; // Agregamos useCallback
-import axios from "../../services/axios";
+import axios from "../../../services/axios";
 import { Link } from "react-router-dom";
-import BotonGenerarOrdenes from './components/BotonGenerarOrdenes'; // Asegúrate de que esta ruta sea correcta
+import BotonGenerarOrdenes from '../components/BotonGenerarOrdenes'; // Asegúrate de que esta ruta sea correcta
 
 /* Endpoint */
 const API_CONTRATOS = "/servicios-periodicos";

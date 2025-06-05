@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import axios from '../../services/axios';
+import axios from '../../../services/axios';
 import { Package, AlertTriangle, CheckCircle2 } from 'lucide-react';
 
-import InventarioForm from './components/InventarioForm';
-import InventoryTable from './components/InventoryTable';
-import InventarioToolbar from './components/InventarioToolbar';
+import InventarioForm from '../components/InventarioForm';
+import InventoryTable from '../components/InventoryTable';
+import InventarioToolbar from '../components/InventarioToolbar';
 
 // ============================
 // Notification

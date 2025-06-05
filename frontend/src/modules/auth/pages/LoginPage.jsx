@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom'; // Añadido Link por si quieres enlace a landing
-import { useAuth } from '../../hooks/useAuth'; // Hook para acceder al contexto
+import { useAuth } from '../../../hooks/useAuth'; // Hook para acceder al contexto
 // Opcional: Importar un componente Spinner si tienes uno genérico
 // import Spinner from '../../components/ui/Spinner';
 
