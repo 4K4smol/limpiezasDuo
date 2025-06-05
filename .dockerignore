@@ -1,0 +1,5 @@
+backend/node_modules
+backend/vendor
+frontend/node_modules
+backend/storage
+backend/public/build
