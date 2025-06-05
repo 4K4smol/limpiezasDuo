@@ -4,8 +4,12 @@ import SkeletonCard from "./SkeletonCard";
 import EmptyState from "./EmptyState";
 
 // --- API Utils
+const API_BASE = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL}/api`
+  : 'http://localhost:8000/api';
+
 const fetchServicios = async (signal) => {
-  const res = await fetch("http://127.0.0.1:8000/api/servicios", { signal });
+  const res = await fetch(`${API_BASE}/servicios`, { signal });
   if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
   return res.json();
 };
