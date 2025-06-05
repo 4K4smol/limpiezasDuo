@@ -16,7 +16,7 @@ export default function InventoryTable({
     if (filterStatus === 'active') data = data.filter(i => i.activo);
     if (filterStatus === 'inactive') data = data.filter(i => !i.activo);
     if (filterStatus === 'low') data = data.filter(i => i.activo && i.cantidad_actual <= i.stock_minimo);
-    
+
     if (searchTerm.trim()) {
       const s = searchTerm.toLowerCase();
       data = data.filter(i =>
@@ -114,8 +114,8 @@ export default function InventoryTable({
                       </td>
                       <td className="whitespace-nowrap px-3 py-4 text-sm text-center">
                         <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset 
-                          ${item.activo 
-                            ? 'bg-green-50 text-green-700 ring-green-600/20' 
+                          ${item.activo
+                            ? 'bg-green-50 text-green-700 ring-green-600/20'
                             : 'bg-gray-50 text-gray-600 ring-gray-500/10'}`}>
                           {item.activo ? 'Activo' : 'Inactivo'}
                         </span>

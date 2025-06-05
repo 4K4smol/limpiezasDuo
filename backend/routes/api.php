@@ -48,14 +48,9 @@ Route::prefix('servicios-periodicos')->group(function () {
 
 Route::apiResource('facturas', FacturaController::class);
 
-Route::prefix('clientes')->group(function () {
-    Route::get('/', [ClienteController::class, 'index']);
-    Route::get('/{id}', [ClienteController::class, 'show']);
-    Route::post('/', [ClienteController::class, 'store']);
-    Route::put('/{id}', [ClienteController::class, 'update']);
-    Route::patch('/{id}/toggle', [ClienteController::class, 'toggleActivo']);
-    Route::get('/{id}/ubicaciones', [ClienteController::class, 'ubicaciones']);
-});
+Route::apiResource('clientes', ClienteController::class);
+Route::patch('clientes/{id}/toggle-activo', [ClienteController::class, 'toggleActivo']);
+Route::get('clientes/{id}/ubicaciones',      [ClienteController::class, 'ubicaciones']);
 
 Route::prefix('empleados')->group(function () {
     Route::get('/', [EmpleadoController::class, 'index']);
@@ -70,6 +65,7 @@ Route::prefix('inventario')->group(function () {
     Route::get('/{id}', [InventarioController::class, 'show']);
     Route::post('/', [InventarioController::class, 'store']);
     Route::put('/{id}', [InventarioController::class, 'update']);
+    Route::delete('/{id}', [InventarioController::class, 'destroy']);
     Route::post('/{id}/toggle', [InventarioController::class, 'toggleActivo']);
 });
 
