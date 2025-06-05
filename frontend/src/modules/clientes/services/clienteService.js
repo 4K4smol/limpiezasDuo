@@ -1,3 +1,7 @@
+// src/modules/clientes/services/clienteService.js
+
+const base = `${import.meta.env.VITE_API_URL}/api/clientes`;
+
 const handleResponse = async (r) => {
   if (r.ok) return r.json().then((d) => d.data ?? d);
   const contentType = r.headers.get('content-type');
@@ -11,17 +15,14 @@ const handleResponse = async (r) => {
   throw error;
 };
 
-
 export const clienteService = {
   list: () =>
     fetch(base, { credentials: 'include' })
-      .then(json)
-      .then(r => r.data),          // ⬅️  devuelve directamente el array
+      .then(handleResponse),
 
   get: (id) =>
     fetch(`${base}/${id}`, { credentials: 'include' })
-      .then(json)
-      .then(r => r.data),          // ⬅️  idem
+      .then(handleResponse),
 
   create: (data) =>
     fetch(base, {
@@ -29,9 +30,7 @@ export const clienteService = {
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
       body: JSON.stringify(data),
-    })
-      .then(json)
-      .then(r => r.data),
+    }).then(handleResponse),
 
   update: (id, data) =>
     fetch(`${base}/${id}`, {
@@ -39,18 +38,22 @@ export const clienteService = {
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
       body: JSON.stringify(data),
-    })
-      .then(json)
-      .then(r => r.data),
+    }).then(handleResponse),
 
   remove: (id) =>
-    fetch(`${base}/${id}`, { method: 'DELETE', credentials: 'include' }),
+    fetch(`${base}/${id}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    }).then(handleResponse),
 
   toggle: (id) =>
-    fetch(`${base}/${id}/toggle-activo`, { method: 'PATCH', credentials: 'include' })
-      .then(json),
+    fetch(`${base}/${id}/toggle-activo`, {
+      method: 'PATCH',
+      credentials: 'include',
+    }).then(handleResponse),
 
   ubicaciones: (id) =>
-    fetch(`${base}/${id}/ubicaciones`, { credentials: 'include' })
-      .then(json),
+    fetch(`${base}/${id}/ubicaciones`, {
+      credentials: 'include',
+    }).then(handleResponse),
 };

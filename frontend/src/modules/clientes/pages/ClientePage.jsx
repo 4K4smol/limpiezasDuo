@@ -1,7 +1,8 @@
-// clientes/ClientePage.jsx
-import { useEffect, useState } from 'react';
-import { clienteService } from './services/clienteService';
-import ClientForm from './components/ClientForm';
+// src/modules/clientes/pages/ClientePage.jsx
+
+import React, { useEffect, useState } from 'react';
+import { clienteService } from '../services/clienteService';
+import ClientForm from '../components/ClientForm';
 import { Pencil, Trash2, ToggleLeft, ToggleRight, Plus } from 'lucide-react';
 
 export default function ClientePage() {
@@ -9,34 +10,38 @@ export default function ClientePage() {
   const [query, setQuery] = useState('');
   const [dialog, setDialog] = useState({ open: false, data: null });
 
-  const load = () =>
-    clienteService.list().then(setClientes);
+  const loadClientes = () =>
+    clienteService.list().then(setClientes).catch(console.error);
 
-  // ⬇️ Aquí el cambio
   useEffect(() => {
-    load();
+    loadClientes();
   }, []);
 
-
-  const openNew   = () => setDialog({ open: true, data: null });
-  const openEdit  = (c) => setDialog({ open: true, data: c });
+  const openNew = () => setDialog({ open: true, data: null });
+  const openEdit = (cliente) => setDialog({ open: true, data: cliente });
   const closeForm = () => setDialog({ open: false, data: null });
 
-  const save = (data) =>
-    (data.id_cliente
+  const saveCliente = (data) => {
+    const action = data.id_cliente
       ? clienteService.update(data.id_cliente, data)
-      : clienteService.create(data)
-    ).then(() => { load(); closeForm(); });
+      : clienteService.create(data);
+    action.then(() => {
+      loadClientes();
+      closeForm();
+    });
+  };
 
-  const remove = (id) =>
-    confirm('¿Eliminar cliente definitivamente?') &&
-    clienteService.remove(id).then(load);
+  const deleteCliente = (id) => {
+    if (confirm('¿Eliminar cliente definitivamente?')) {
+      clienteService.remove(id).then(loadClientes);
+    }
+  };
 
-  const toggle = (id) => clienteService.toggle(id).then(load);
+  const toggleActivo = (id) => clienteService.toggle(id).then(loadClientes);
 
-  const filtered = clientes.filter((c) =>
-    c.razon_social.toLowerCase().includes(query.toLowerCase()) ||
-    c.cif.toLowerCase().includes(query.toLowerCase())
+  const clientesFiltrados = clientes.filter((c) =>
+    (c.razon_social ?? '').toLowerCase().includes(query.toLowerCase()) ||
+    (c.cif ?? '').toLowerCase().includes(query.toLowerCase())
   );
 
   return (
@@ -51,7 +56,10 @@ export default function ClientePage() {
             onChange={(e) => setQuery(e.target.value)}
             className="border rounded-xl px-3 py-2"
           />
-          <button onClick={openNew} className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-xl">
+          <button
+            onClick={openNew}
+            className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-xl"
+          >
             <Plus size={18} /> Nuevo
           </button>
         </div>
@@ -71,29 +79,39 @@ export default function ClientePage() {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((c) => (
-              <tr key={c.id_cliente} className="border-t hover:bg-gray-50">
-                <td className="p-3">{c.razon_social}</td>
-                <td className="p-3">{c.cif}</td>
-                <td className="p-3">{c.telefono}</td>
-                <td className="p-3">{c.email}</td>
-                <td className="p-3">{c.ciudad}</td>
-                <td className="p-3 text-center">
-                  <button onClick={() => toggle(c.id_cliente)} className="inline-flex">
-                    {c.activo ? <ToggleRight size={20} /> : <ToggleLeft size={20} />}
-                  </button>
-                </td>
-                <td className="p-3 flex gap-2">
-                  <button onClick={() => openEdit(c)} className="p-1 rounded hover:bg-gray-200">
-                    <Pencil size={18} />
-                  </button>
-                  <button onClick={() => remove(c.id_cliente)} className="p-1 rounded hover:bg-red-100 text-red-600">
-                    <Trash2 size={18} />
-                  </button>
-                </td>
-              </tr>
-            ))}
-            {filtered.length === 0 && (
+            {clientesFiltrados.length > 0 ? (
+              clientesFiltrados.map((c) => (
+                <tr key={c.id_cliente} className="border-t hover:bg-gray-50">
+                  <td className="p-3">{c.razon_social}</td>
+                  <td className="p-3">{c.cif}</td>
+                  <td className="p-3">{c.telefono}</td>
+                  <td className="p-3">{c.email}</td>
+                  <td className="p-3">{c.ciudad}</td>
+                  <td className="p-3 text-center">
+                    <button
+                      onClick={() => toggleActivo(c.id_cliente)}
+                      className="inline-flex"
+                    >
+                      {c.activo ? <ToggleRight size={20} /> : <ToggleLeft size={20} />}
+                    </button>
+                  </td>
+                  <td className="p-3 flex gap-2">
+                    <button
+                      onClick={() => openEdit(c)}
+                      className="p-1 rounded hover:bg-gray-200"
+                    >
+                      <Pencil size={18} />
+                    </button>
+                    <button
+                      onClick={() => deleteCliente(c.id_cliente)}
+                      className="p-1 rounded hover:bg-red-100 text-red-600"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </td>
+                </tr>
+              ))
+            ) : (
               <tr>
                 <td colSpan={7} className="p-4 text-center text-gray-500">
                   No hay clientes que coincidan
@@ -107,7 +125,7 @@ export default function ClientePage() {
       <ClientForm
         open={dialog.open}
         onClose={closeForm}
-        onSave={save}
+        onSave={saveCliente}
         initialValues={dialog.data}
       />
     </section>
