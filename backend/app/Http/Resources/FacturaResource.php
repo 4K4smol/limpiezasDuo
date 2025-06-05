@@ -10,27 +10,21 @@ class FacturaResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
-            'numero' => $this->numero,
-            'cliente' => [
-                'id' => $this->cliente->id,
-                'nombre' => $this->cliente->nombre,
-                'email' => $this->cliente->email,
-            ],
-            'items' => $this->items->map(function ($item) {
-                return [
-                    'descripcion' => $item->descripcion,
-                    'cantidad' => $item->cantidad,
-                    'precio_unitario' => $item->precio_unitario,
-                    'subtotal' => $item->cantidad * $item->precio_unitario,
-                ];
-            }),
-            'iva_porcentaje' => $this->iva_porcentaje,
-            'retencion_porcentaje' => $this->retencion_porcentaje,
-            'forma_pago' => $this->forma_pago,
-            'total' => $this->total,
-            'fecha_emision' => $this->fecha_emision->format('Y-m-d'),
-            'created_at' => $this->created_at->toDateTimeString(),
+            'id_factura'      => $this->id_factura,
+            'numero_factura'  => $this->numero_factura,
+            'cliente'         => ClienteResource::make($this->whenLoaded('cliente')),
+            'detalles'        => FacturaDetalleResource::collection($this->whenLoaded('detalles')),
+            'fecha_emision'   => $this->fecha_emision?->format('Y-m-d'),
+            'base_imponible'  => (float) $this->base_imponible,
+            'iva_porcentaje'  => (float) $this->iva_porcentaje,
+            'iva_importe'     => (float) $this->iva_importe,
+            'retencion_porcentaje' => $this->retencion_porcentaje !== null ? (float) $this->retencion_porcentaje : null,
+            'retencion_importe'    => $this->retencion_importe !== null ? (float) $this->retencion_importe : null,
+            'total_factura'   => (float) $this->total_factura,
+            'forma_pago'      => $this->forma_pago,
+            'creado'          => $this->created_at?->toIso8601String(),
+            'actualizado'     => $this->updated_at?->toIso8601String(),
         ];
     }
 }
+

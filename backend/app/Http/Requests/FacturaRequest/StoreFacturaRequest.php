@@ -14,9 +14,9 @@ class StoreFacturaRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id_cliente' => 'required|exists:clientes,id',
+            'id_cliente' => 'required|exists:clientes,id_cliente',
             'items' => 'required|array|min:1',
-            'items.*.descripcion' => 'required|string|max:255',
+            'items.*.descripcion_concepto' => 'required|string|max:255',
             'items.*.cantidad' => 'required|numeric|min:0.01',
             'items.*.precio_unitario' => 'required|numeric|min:0.01',
             'iva_porcentaje' => 'required|numeric|min:0|max:100',
@@ -34,7 +34,7 @@ class StoreFacturaRequest extends FormRequest
 
             'items.required' => 'Debes añadir al menos un concepto o servicio.',
             'items.array' => 'Los ítems deben enviarse como un array.',
-            'items.*.descripcion.required' => 'Cada ítem debe tener una descripción.',
+            'items.*.descripcion_concepto.required' => 'Cada ítem debe tener una descripción.',
             'items.*.cantidad.required' => 'Cada ítem debe tener una cantidad.',
             'items.*.cantidad.numeric' => 'La cantidad debe ser un número.',
             'items.*.precio_unitario.required' => 'Cada ítem debe tener un precio unitario.',
