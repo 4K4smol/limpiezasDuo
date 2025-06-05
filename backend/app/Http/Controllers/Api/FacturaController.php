@@ -12,6 +12,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 use Exception;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection; // Necesario para la respuesta de paginación
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class FacturaController extends Controller
 {
@@ -32,8 +33,8 @@ class FacturaController extends Controller
     {
         // Usamos paginate para eficiencia y eager loading con el nombre correcto de la relación
         $facturas = Factura::with('cliente', 'detalles') // CORREGIDO: Asumiendo que la relación se llama 'detalles'
-                           ->latest() // Ordena por fecha de creación descendente
-                           ->paginate(15); // O el número que prefieras
+            ->latest() // Ordena por fecha de creación descendente
+            ->paginate(15); // O el número que prefieras
 
         // FacturaResource::collection maneja automáticamente la estructura de paginación
         return FacturaResource::collection($facturas);
@@ -49,7 +50,7 @@ class FacturaController extends Controller
     {
         // Buscamos con eager loading y el nombre correcto de la relación
         $factura = Factura::with('cliente', 'detalles') // CORREGIDO: Asumiendo que la relación se llama 'detalles'
-                          ->find($id);
+            ->find($id);
 
         if (!$factura) {
             return response()->json(['message' => 'Factura no encontrada.'], 404);
@@ -83,8 +84,8 @@ class FacturaController extends Controller
             return response()->json(new FacturaResource($factura->load('cliente', 'detalles')), 201); // Eager load para respuesta completa
 
         } catch (\InvalidArgumentException $e) { // Capturar excepciones específicas si es posible
-             Log::warning("Error de validación de negocio al crear factura: " . $e->getMessage());
-             return response()->json(['message' => $e->getMessage()], 422); // 422 Unprocessable Entity
+            Log::warning("Error de validación de negocio al crear factura: " . $e->getMessage());
+            return response()->json(['message' => $e->getMessage()], 422); // 422 Unprocessable Entity
         } catch (Exception $e) {
             Log::error("Fallo al crear factura desde API: " . $e->getMessage(), ['exception' => $e]);
             return response()->json(['message' => 'Error interno al generar la factura.'], 500);
@@ -123,8 +124,8 @@ class FacturaController extends Controller
             return response()->json(new FacturaResource($facturaActualizada->load('cliente', 'detalles')), 200); // Eager load para respuesta completa
 
         } catch (\InvalidArgumentException $e) { // Capturar excepciones específicas si es posible
-             Log::warning("Error de validación de negocio al actualizar factura {$id}: " . $e->getMessage());
-             return response()->json(['message' => $e->getMessage()], 422); // 422 Unprocessable Entity
+            Log::warning("Error de validación de negocio al actualizar factura {$id}: " . $e->getMessage());
+            return response()->json(['message' => $e->getMessage()], 422); // 422 Unprocessable Entity
         } catch (Exception $e) {
             Log::error("Fallo al actualizar factura {$id}: " . $e->getMessage(), ['exception' => $e]);
             return response()->json(['message' => 'Error interno al actualizar la factura.'], 500);
@@ -155,11 +156,17 @@ class FacturaController extends Controller
 
             // CORREGIDO: Código de estado 204 para DELETE exitoso sin contenido en la respuesta.
             return response()->json(null, 204);
-
         } catch (Exception $e) {
             // Podrías tener excepciones si hay restricciones de BD (ej: Foreign Key si no usas cascade)
             Log::error("Fallo al eliminar factura {$id}: " . $e->getMessage(), ['exception' => $e]);
             return response()->json(['message' => 'Error interno al eliminar la factura.'], 500);
         }
+    }
+
+    public function descargar(int $id)
+    {
+        $factura = Factura::with('cliente', 'detalles')->findOrFail($id);
+        $pdf = Pdf::loadView('facturas.pdf', compact('factura'));
+        return $pdf->download("factura-{$factura->numero_factura}.pdf");
     }
 }

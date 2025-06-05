@@ -47,6 +47,7 @@ Route::prefix('servicios-periodicos')->group(function () {
 });
 
 Route::apiResource('facturas', FacturaController::class);
+Route::get('/facturas/{id}/descargar', [FacturaController::class, 'descargar']);
 
 Route::apiResource('clientes', ClienteController::class);
 Route::patch('clientes/{id}/toggle-activo', [ClienteController::class, 'toggleActivo']);

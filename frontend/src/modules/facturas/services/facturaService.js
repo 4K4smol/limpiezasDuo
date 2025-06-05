@@ -35,4 +35,22 @@ export const facturaService = {
       method: 'DELETE',
       credentials: 'include',
     }).then(handleResponse),
+
+  descargar: (id_factura) =>
+    fetch(`${base}/${id_factura}/descargar`, {
+      method: 'GET',
+      credentials: 'include',
+    }).then((r) => {
+      if (!r.ok) throw new Error('Error al descargar el PDF');
+      return r.blob().then((blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `factura-${id_factura}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      });
+    }),
 };
+

@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
         Schema::create('facturas', function (Blueprint $table) {
@@ -20,12 +19,15 @@ return new class extends Migration
             $table->decimal('retencion_importe', 10, 2)->nullable();
             $table->decimal('total_factura', 10, 2);
             $table->string('forma_pago', 50)->nullable();
+            $table->boolean('anulada')->default(false); // Preparado para anulación futura
             $table->timestamps();
 
             $table->foreign('id_cliente')
-                  ->references('id_cliente')
-                  ->on('clientes')
-                  ->onDelete('cascade');
+                ->references('id_cliente')
+                ->on('clientes')
+                ->onDelete('cascade');
+
+            $table->index(['fecha_emision']);
         });
     }
 
