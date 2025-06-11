@@ -2,16 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class FacturaDetalle extends Model
 {
-    use HasFactory;
-
-    protected $table = 'facturas_detalles';
     protected $primaryKey = 'id_factura_detalle';
+    protected $table = 'facturas_detalles';
 
     protected $fillable = [
         'id_factura',
@@ -26,18 +22,15 @@ class FacturaDetalle extends Model
 
     protected $casts = [
         'cantidad' => 'integer',
-        'precio_unitario' => 'decimal:2',
-        'subtotal' => 'decimal:2',
-        'iva_porcentaje' => 'decimal:2',
-        'iva_importe' => 'decimal:2',
-        'total_linea' => 'decimal:2',
+        'precio_unitario' => 'float',
+        'subtotal' => 'float',
+        'iva_porcentaje' => 'float',
+        'iva_importe' => 'float',
+        'total_linea' => 'float',
     ];
 
-    /**
-     * Relación: este detalle pertenece a una factura.
-     */
-    public function factura(): BelongsTo
+    public function factura()
     {
-        return $this->belongsTo(Factura::class, 'id_factura', 'id_factura');
+        return $this->belongsTo(Factura::class, 'id_factura');
     }
 }

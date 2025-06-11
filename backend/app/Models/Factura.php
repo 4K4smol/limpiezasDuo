@@ -2,16 +2,13 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Factura extends Model
 {
-    use HasFactory;
+    use SoftDeletes;
 
-    protected $table = 'facturas';
     protected $primaryKey = 'id_factura';
 
     protected $fillable = [
@@ -19,6 +16,7 @@ class Factura extends Model
         'numero_factura',
         'id_cliente',
         'fecha_emision',
+        'fecha_vencimiento',
         'base_imponible',
         'iva_porcentaje',
         'iva_importe',
@@ -26,34 +24,35 @@ class Factura extends Model
         'retencion_importe',
         'total_factura',
         'forma_pago',
+        'importe_pagado',
+        'estado_pago',
         'hash_factura',
+        'hash_anterior',
         'anulada',
     ];
 
+    /**
+     * Convierte estos atributos a objetos Carbon automáticamente.
+     */
     protected $casts = [
-        'fecha_emision' => 'date',
-        'base_imponible' => 'decimal:2',
-        'iva_porcentaje' => 'decimal:2',
-        'iva_importe' => 'decimal:2',
-        'retencion_porcentaje' => 'decimal:2',
-        'retencion_importe' => 'decimal:2',
-        'total_factura' => 'decimal:2',
-        'anulada' => 'boolean',
+        'fecha_emision'      => 'date',      // convierte a Carbon (solo fecha)
+        'fecha_vencimiento'  => 'date',      // idem
+        'created_at'         => 'datetime',  // opcional
+        'updated_at'         => 'datetime',
     ];
 
-    /**
-     * Relación: Factura pertenece a un Cliente.
-     */
-    public function cliente(): BelongsTo
+    public function cliente()
     {
-        return $this->belongsTo(Cliente::class, 'id_cliente', 'id_cliente');
+        return $this->belongsTo(Cliente::class, 'id_cliente');
     }
 
-    /**
-     * Relación: Factura tiene muchos detalles.
-     */
-    public function detalles(): HasMany
+    public function detalles()
     {
-        return $this->hasMany(FacturaDetalle::class, 'id_factura', 'id_factura');
+        return $this->hasMany(FacturaDetalle::class, 'id_factura');
+    }
+
+    public function logs()
+    {
+        return $this->hasMany(FacturaLog::class, 'id_factura');
     }
 }

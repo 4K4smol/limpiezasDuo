@@ -49,7 +49,7 @@ class Cliente extends Model
 
     public function ubicaciones()
     {
-        return $this->hasMany(UbicacionCliente::class, 'id_ubicacion');
+        return $this->hasMany(UbicacionCliente::class, 'id_cliente', 'id_cliente');
     }
 
     public function servicios(): BelongsToMany

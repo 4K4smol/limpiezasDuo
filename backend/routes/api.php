@@ -37,6 +37,7 @@ Route::apiResource('ordenes-trabajo', OrdenTrabajoController::class)->parameters
     'ordenes-trabajo' => 'ordenTrabajo' // Asegura que el parámetro coincida con el nombre en el controller (OrdenTrabajo $ordenTrabajo)
 ]);
 Route::patch('/ordenes-trabajo/{id}/estado', [OrdenTrabajoController::class, 'cambiarEstado']);
+Route::post('ordenes-trabajo/{id}/facturar', [OrdenTrabajoController::class, 'facturar']);
 
 Route::prefix('servicios-periodicos')->group(function () {
     Route::get('/', [ServicioPeriodicoController::class, 'index']);

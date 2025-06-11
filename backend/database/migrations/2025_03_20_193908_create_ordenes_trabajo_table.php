@@ -29,7 +29,7 @@ return new class extends Migration
 
             $table->foreign('id_ubicacion')
                   ->references('id_ubicacion')
-                  ->on('ubicaciones_cliente')
+                  ->on('ubicaciones_clientes')
                   ->onDelete('restrict');
 
             $table->foreign('id_empleado')

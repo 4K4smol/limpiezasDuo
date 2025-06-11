@@ -14,7 +14,8 @@ use Illuminate\Support\Facades\DB; // Para transacciones
 use Illuminate\Support\Facades\Log; // Para logging de errores
 use Illuminate\Validation\Rules\Enum;
 use App\Enums\EstadoOrden;
-
+use App\Services\FacturacionService;
+use Illuminate\Http\JsonResponse; // Para respuestas JSON
 
 class OrdenTrabajoController extends Controller
 {
@@ -192,5 +193,35 @@ class OrdenTrabajoController extends Controller
         $orden->save();
 
         return response()->json(['message' => 'Estado actualizado']);
+    }
+
+    public function facturar(int $id, FacturacionService $svc): JsonResponse
+    {
+        $orden = OrdenTrabajo::with('detalles.servicio')->findOrFail($id);
+
+        // Validación usando enum:
+        if ($orden->estado !== EstadoOrden::Completado) {
+            return response()->json([
+                'error' => 'Solo pueden facturarse órdenes completadas'
+            ], 422);
+        }
+
+        if ($orden->id_factura) {
+            return response()->json([
+                'error' => 'Orden ya facturada'
+            ], 422);
+        }
+
+        $items = $orden->detalles->map(fn($d) => [
+            'descripcion_concepto' => $d->servicio->nombre,
+            'cantidad'             => 1,
+            'precio_unitario'      => $d->precio_total,
+        ])->toArray();
+
+        $factura = $svc->generarFactura($orden->id_cliente, $items, 21.00);
+
+        $orden->update(['id_factura' => $factura->id_factura]);
+
+        return response()->json(['data' => $factura]);
     }
 }

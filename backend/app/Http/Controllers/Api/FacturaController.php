@@ -58,7 +58,7 @@ class FacturaController extends Controller
     public function store(StoreFacturaRequest $request): JsonResponse
     {
         $validated = $request->validated();
-
+        // dd($validated);
         try {
             $factura = $this->facturacionService->generarFactura(
                 idCliente: $validated['id_cliente'],

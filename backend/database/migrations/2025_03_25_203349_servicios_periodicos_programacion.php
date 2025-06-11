@@ -25,7 +25,7 @@ return new class extends Migration {
 
             $table->foreign('id_ubicacion')
                 ->references('id_ubicacion')
-                ->on('ubicaciones_cliente');
+                ->on('ubicaciones_clientes');
 
             $table->tinyInteger('semana_mensual')->comment('1-4 (la “semana dentro del mes”)');
             $table->dateTime('dia_hora')->comment('día (cualquier mes/año) + hora de ejecución');

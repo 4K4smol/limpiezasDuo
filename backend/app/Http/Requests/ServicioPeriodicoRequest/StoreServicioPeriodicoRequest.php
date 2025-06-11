@@ -16,7 +16,7 @@ class StoreServicioPeriodicoRequest extends FormRequest
 
             'programaciones'                   => ['required', 'array'],
             'programaciones.*.id_servicio'     => ['required', 'exists:servicios,id_servicio'],
-            'programaciones.*.id_ubicacion'    => ['required', 'exists:ubicaciones_cliente,id_ubicacion'],
+            'programaciones.*.id_ubicacion'    => ['required', 'exists:ubicaciones_clientes,id_ubicacion'],
             'programaciones.*.semana_mensual'  => ['required', 'integer', 'between:1,4'],
             'programaciones.*.dia_hora' => ['required', 'date_format:Y-m-d\TH:i'],
         ];

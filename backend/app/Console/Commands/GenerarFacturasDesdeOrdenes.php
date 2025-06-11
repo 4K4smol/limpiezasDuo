@@ -37,7 +37,7 @@ class GenerarFacturasDesdeOrdenes extends Command
                     foreach ($ordenesCliente as $orden) {
                         foreach ($orden->detalles as $detalle) {
                             $items[] = [
-                                'descripcion_concepto' => "Servicio: {$detalle->servicio->nombre} (Orden #{$orden->id_orden})",
+                                'descripcion_concepto' => "Servicio: {$detalle->servicio->nombre}",
                                 'cantidad' => 1,
                                 'precio_unitario' => $detalle->precio_total,
                             ];
