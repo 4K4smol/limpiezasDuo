@@ -36,9 +36,7 @@ const Servicios = () => {
       })
       .catch((err) => {
         if (err.name !== "AbortError") {
-          setError(
-            "No se pudieron cargar los servicios. Inténtalo de nuevo más tarde."
-          );
+          setError("No se pudieron cargar los servicios. Inténtalo de nuevo más tarde.");
           setIsLoading(false);
         }
       });
@@ -49,14 +47,14 @@ const Servicios = () => {
   const serviciosActivos = servicios.filter((s) => s.is_active);
 
   return (
-    <section id="servicios" className="py-16 md:py-24 bg-gray-50">
+    <section id="servicios" className="py-16 md:py-24 bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
       <div className="container px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <h2 className="text-3xl md:text-4xl font-bold text-center font-heading text-limpio-dark mb-12 md:mb-16">
+        <h2 className="text-3xl md:text-4xl font-bold text-center font-heading text-limpio-dark dark:text-white mb-12 md:mb-16">
           Nuestros Servicios Profesionales
         </h2>
 
         {error && (
-          <p className="text-center text-red-600 bg-red-100 p-4 rounded-md">
+          <p className="text-center text-red-600 bg-red-100 dark:bg-red-900/20 dark:text-red-400 p-4 rounded-md">
             {error}
           </p>
         )}

@@ -8,7 +8,7 @@ const empty = {
   items: [{ descripcion_concepto: '', cantidad: 1, precio_unitario: 0 }],
 };
 
-export default function FacturaForm({ open, onClose, onSave, initialValues }) {
+export default function FacturaForm({ open, onClose, onSave, initialValues, clientes = [] }) {
   const [form, setForm] = useState(empty);
   const modalRef = useRef(null);
   const firstInput = useRef(null);
@@ -54,6 +54,12 @@ export default function FacturaForm({ open, onClose, onSave, initialValues }) {
   const removeItem = (i) =>
     setForm((f) => ({ ...f, items: f.items.filter((_, idx) => idx !== i) }));
 
+  // Cálculo de totales
+  const base = form.items.reduce((acc, it) => acc + (Number(it.cantidad) * Number(it.precio_unitario)), 0);
+  const iva = base * (Number(form.iva_porcentaje) / 100);
+  const ret = base * (Number(form.retencion_porcentaje) / 100);
+  const total = base + iva - ret;
+
   const handleSubmit = (e) => {
     e.preventDefault();
     onSave(form);
@@ -67,15 +73,19 @@ export default function FacturaForm({ open, onClose, onSave, initialValues }) {
         <h2 className="text-xl font-semibold">{form.id_factura ? 'Editar Factura' : 'Nueva Factura'}</h2>
         <form onSubmit={handleSubmit} className="space-y-4 max-h-[80vh] overflow-auto" noValidate>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <input
+            <select
               ref={firstInput}
               name="id_cliente"
               value={form.id_cliente}
               onChange={handleChange}
-              placeholder="ID Cliente"
               className="border rounded px-3 py-2"
               required
-            />
+            >
+              <option value="">Selecciona cliente</option>
+              {clientes.map(c => (
+                <option key={c.id_cliente} value={c.id_cliente}>{c.nombre}</option>
+              ))}
+            </select>
             <input
               name="forma_pago"
               value={form.forma_pago}
@@ -104,7 +114,7 @@ export default function FacturaForm({ open, onClose, onSave, initialValues }) {
           </div>
           <div className="space-y-2">
             {form.items.map((it, idx) => (
-              <div key={idx} className="grid grid-cols-6 gap-2 items-center">
+              <div key={idx} className="grid grid-cols-7 gap-2 items-center">
                 <input
                   className="col-span-3 border rounded px-2 py-1"
                   value={it.descripcion_concepto}
@@ -119,6 +129,7 @@ export default function FacturaForm({ open, onClose, onSave, initialValues }) {
                   onChange={(e) => handleItemChange(idx, 'cantidad', Number(e.target.value))}
                   placeholder="Cant"
                   min="1"
+                  required
                 />
                 <input
                   type="number"
@@ -127,11 +138,21 @@ export default function FacturaForm({ open, onClose, onSave, initialValues }) {
                   onChange={(e) => handleItemChange(idx, 'precio_unitario', Number(e.target.value))}
                   placeholder="Precio"
                   min="0"
+                  required
                 />
-                <button type="button" onClick={() => removeItem(idx)} className="text-red-600">X</button>
+                <span className="col-span-1 text-right text-sm">
+                  {(Number(it.cantidad) * Number(it.precio_unitario)).toFixed(2)} €
+                </span>
+                <button type="button" onClick={() => removeItem(idx)} className="text-red-600 col-span-1">X</button>
               </div>
             ))}
-            <button type="button" onClick={addItem} className="text-sm text-blue-600">Añadir concepto</button>
+            <button type="button" onClick={addItem} className="text-sm text-blue-600 mt-2">+ Añadir concepto</button>
+          </div>
+          <div className="bg-gray-50 rounded p-3 mt-4 space-y-1 text-right">
+            <div>Base imponible: <b>{base.toFixed(2)} €</b></div>
+            <div>IVA: <b>{iva.toFixed(2)} €</b></div>
+            <div>Retención: <b>{ret.toFixed(2)} €</b></div>
+            <div className="text-lg">Total factura: <b>{total.toFixed(2)} €</b></div>
           </div>
           <div className="flex justify-end gap-3 pt-2">
             <button type="button" onClick={onClose} className="px-4 py-2 rounded border">Cancelar</button>

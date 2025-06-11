@@ -10,8 +10,8 @@ class FacturaDetalle extends Model
 {
     use HasFactory;
 
-    protected $table = 'facturas_detalles'; // Nombre de la tabla
-    protected $primaryKey = 'id_factura_detalle'; // Clave primaria
+    protected $table = 'facturas_detalles';
+    protected $primaryKey = 'id_factura_detalle';
 
     protected $fillable = [
         'id_factura',
@@ -19,10 +19,22 @@ class FacturaDetalle extends Model
         'cantidad',
         'precio_unitario',
         'subtotal',
+        'iva_porcentaje',
+        'iva_importe',
+        'total_linea',
+    ];
+
+    protected $casts = [
+        'cantidad' => 'integer',
+        'precio_unitario' => 'decimal:2',
+        'subtotal' => 'decimal:2',
+        'iva_porcentaje' => 'decimal:2',
+        'iva_importe' => 'decimal:2',
+        'total_linea' => 'decimal:2',
     ];
 
     /**
-     * Obtiene la factura a la que pertenece este detalle.
+     * Relación: este detalle pertenece a una factura.
      */
     public function factura(): BelongsTo
     {

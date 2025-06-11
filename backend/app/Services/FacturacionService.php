@@ -7,6 +7,7 @@ use App\Models\Factura;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Throwable;
 
@@ -23,100 +24,82 @@ class FacturacionService
         ?string $formaPago = null,
         ?Carbon $fechaEmision = null
     ): Factura {
-        $cliente = Cliente::find($idCliente);
-        if (!$cliente) {
-            throw new InvalidArgumentException("Cliente con ID {$idCliente} no encontrado.");
-        }
-
+        $cliente = Cliente::findOrFail($idCliente);
         if (empty($items)) {
-            throw new InvalidArgumentException('La lista de ítems no puede estar vacía.');
+            throw new InvalidArgumentException('La factura debe tener al menos un ítem.');
         }
 
         $fechaEmision = $fechaEmision ?? Carbon::now();
-        $numeroFactura = $this->generarSiguienteNumeroFactura($fechaEmision->year);
+        $numeroFactura = $this->generarNumeroFactura($fechaEmision->year);
+        $totales = $this->calcularTotales($items, $ivaPorcentaje, $retencionPorcentaje);
 
-        $calculos = $this->calcularTotales($items, $ivaPorcentaje, $retencionPorcentaje);
-
-        try {
-            return DB::transaction(function () use (
-                $numeroFactura, $cliente, $fechaEmision, $ivaPorcentaje,
-                $retencionPorcentaje, $formaPago, $calculos
-            ) {
-                $factura = Factura::create([
-                    'numero_factura' => $numeroFactura,
-                    'id_cliente' => $cliente->id_cliente,
-                    'fecha_emision' => $fechaEmision,
-                    'base_imponible' => $calculos['base_imponible'],
-                    'iva_porcentaje' => $ivaPorcentaje,
-                    'iva_importe' => $calculos['iva_importe'],
-                    'retencion_porcentaje' => $retencionPorcentaje,
-                    'retencion_importe' => $calculos['retencion_importe'] ?: null,
-                    'total_factura' => $calculos['total_factura'],
-                    'forma_pago' => $formaPago,
-                ]);
-
-                $factura->detalles()->createMany($calculos['detalles']);
-
-                return $factura;
-            });
-        } catch (Throwable $e) {
-            Log::error("Error al generar la factura: {$e->getMessage()}", [
-                'datos' => compact('idCliente', 'items', 'ivaPorcentaje', 'retencionPorcentaje', 'formaPago'),
-                'exception' => $e
+        return DB::transaction(function () use (
+            $cliente, $numeroFactura, $fechaEmision, $formaPago,
+            $ivaPorcentaje, $retencionPorcentaje, $totales
+        ) {
+            $factura = Factura::create([
+                'serie' => 'A',
+                'numero_factura' => $numeroFactura,
+                'id_cliente' => $cliente->id_cliente,
+                'fecha_emision' => $fechaEmision,
+                'base_imponible' => $totales['base_imponible'],
+                'iva_porcentaje' => $ivaPorcentaje,
+                'iva_importe' => $totales['iva_importe'],
+                'retencion_porcentaje' => $retencionPorcentaje,
+                'retencion_importe' => $totales['retencion_importe'] ?: null,
+                'total_factura' => $totales['total_factura'],
+                'forma_pago' => $formaPago,
+                'hash_factura' => $this->generarHashFactura($numeroFactura, $totales),
             ]);
-            throw $e;
-        }
+
+            $factura->detalles()->createMany($totales['detalles']);
+            return $factura->load('cliente', 'detalles');
+        });
     }
 
     /**
-     * Actualiza una factura existente, reemplazando sus detalles.
+     * Actualiza una factura existente y reemplaza sus ítems.
      */
     public function actualizarFactura(Factura $factura, array $datos): Factura
     {
         if (empty($datos['items'])) {
-            throw new InvalidArgumentException('La lista de ítems no puede estar vacía para actualizar.');
+            throw new InvalidArgumentException('Debe haber ítems para actualizar la factura.');
         }
 
-        if (isset($datos['id_cliente']) && !Cliente::find($datos['id_cliente'])) {
-            throw new InvalidArgumentException("Cliente con ID {$datos['id_cliente']} no encontrado.");
-        }
+        $clienteId = $datos['id_cliente'] ?? $factura->id_cliente;
+        Cliente::findOrFail($clienteId);
 
-        $calculos = $this->calcularTotales(
-            $datos['items'],
-            $datos['iva_porcentaje'],
-            $datos['retencion_porcentaje'] ?? null
-        );
+        $fechaEmision = isset($datos['fecha_emision']) ? Carbon::parse($datos['fecha_emision']) : $factura->fecha_emision;
+        $iva = (float) $datos['iva_porcentaje'];
+        $retencion = isset($datos['retencion_porcentaje']) ? (float) $datos['retencion_porcentaje'] : null;
 
-        try {
-            DB::transaction(function () use ($factura, $datos, $calculos) {
-                $factura->update([
-                    'id_cliente' => $datos['id_cliente'] ?? $factura->id_cliente,
-                    'fecha_emision' => $datos['fecha_emision'] ?? $factura->fecha_emision,
-                    'forma_pago' => $datos['forma_pago'] ?? $factura->forma_pago,
-                    'iva_porcentaje' => $datos['iva_porcentaje'],
-                    'retencion_porcentaje' => $datos['retencion_porcentaje'] ?? null,
-                    'base_imponible' => $calculos['base_imponible'],
-                    'iva_importe' => $calculos['iva_importe'],
-                    'retencion_importe' => $calculos['retencion_importe'] ?: null,
-                    'total_factura' => $calculos['total_factura'],
-                ]);
+        $totales = $this->calcularTotales($datos['items'], $iva, $retencion);
 
-                $factura->detalles()->delete();
-                $factura->detalles()->createMany($calculos['detalles']);
-            });
+        return DB::transaction(function () use (
+            $factura, $datos, $clienteId, $fechaEmision, $iva, $retencion, $totales
+        ) {
+            $factura->update([
+                'id_cliente' => $clienteId,
+                'fecha_emision' => $fechaEmision,
+                'forma_pago' => $datos['forma_pago'] ?? $factura->forma_pago,
+                'iva_porcentaje' => $iva,
+                'retencion_porcentaje' => $retencion,
+                'base_imponible' => $totales['base_imponible'],
+                'iva_importe' => $totales['iva_importe'],
+                'retencion_importe' => $totales['retencion_importe'] ?: null,
+                'total_factura' => $totales['total_factura'],
+                'hash_factura' => $this->generarHashFactura($factura->numero_factura, $totales),
+            ]);
+
+            $factura->detalles()->delete();
+            $factura->detalles()->createMany($totales['detalles']);
 
             return $factura->refresh()->load('cliente', 'detalles');
-        } catch (Throwable $e) {
-            Log::error("Error al actualizar factura {$factura->id_factura}: {$e->getMessage()}", [
-                'datos' => $datos,
-                'exception' => $e
-            ]);
-            throw $e;
-        }
+        });
     }
 
     /**
-     * Calcula totales y prepara detalles de factura.
+     * Calcula totales y estructura los detalles de la factura.
      */
     private function calcularTotales(array $items, float $ivaPorcentaje, ?float $retencionPorcentaje = null): array
     {
@@ -124,34 +107,35 @@ class FacturacionService
         $detalles = [];
 
         foreach ($items as $item) {
-            if (!isset($item['descripcion_concepto'], $item['cantidad'], $item['precio_unitario'])) {
-                throw new InvalidArgumentException('Cada ítem debe tener descripción, cantidad y precio.');
-            }
+            $descripcion = $item['descripcion_concepto'] ?? null;
+            $cantidad = (int) ($item['cantidad'] ?? 0);
+            $precio = (float) ($item['precio_unitario'] ?? 0);
 
-            $cantidad = (int) $item['cantidad'];
-            $precio = (float) $item['precio_unitario'];
-
-            if ($cantidad <= 0 || $precio < 0) {
-                throw new InvalidArgumentException("Cantidad o precio inválido en ítem: {$item['descripcion_concepto']}");
+            if (!$descripcion || $cantidad <= 0 || $precio < 0) {
+                throw new InvalidArgumentException('Cada ítem debe tener descripción, cantidad > 0 y precio >= 0.');
             }
 
             $subtotal = round($cantidad * $precio, 2);
             $base += $subtotal;
 
             $detalles[] = [
-                'descripcion_concepto' => $item['descripcion_concepto'],
+                'descripcion_concepto' => $descripcion,
                 'cantidad' => $cantidad,
                 'precio_unitario' => $precio,
                 'subtotal' => $subtotal,
+                'iva_porcentaje' => $ivaPorcentaje,
+                'iva_importe' => round($subtotal * ($ivaPorcentaje / 100), 2),
+                'total_linea' => round($subtotal * (1 + $ivaPorcentaje / 100), 2),
             ];
         }
 
+        $base = round($base, 2);
         $iva = round($base * ($ivaPorcentaje / 100), 2);
         $retencion = $retencionPorcentaje ? round($base * ($retencionPorcentaje / 100), 2) : 0;
         $total = round($base + $iva - $retencion, 2);
 
         return [
-            'base_imponible' => round($base, 2),
+            'base_imponible' => $base,
             'iva_importe' => $iva,
             'retencion_importe' => $retencion,
             'total_factura' => $total,
@@ -160,9 +144,9 @@ class FacturacionService
     }
 
     /**
-     * Genera el número secuencial de factura para el año actual.
+     * Genera número de factura correlativo anual (formato: 2025-0001).
      */
-    private function generarSiguienteNumeroFactura(int $year): string
+    private function generarNumeroFactura(int $year): string
     {
         $prefijo = $year . '-';
 
@@ -171,10 +155,26 @@ class FacturacionService
             ->lockForUpdate()
             ->first();
 
-        $siguiente = $ultima
+        $next = $ultima
             ? (int) str_replace($prefijo, '', $ultima->numero_factura) + 1
             : 1;
 
-        return $prefijo . str_pad($siguiente, 4, '0', STR_PAD_LEFT);
+        return $prefijo . str_pad($next, 4, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * Genera un hash SHA-256 para garantizar integridad de factura.
+     */
+    private function generarHashFactura(string $numero, array $totales): string
+    {
+        $data = [
+            $numero,
+            $totales['base_imponible'],
+            $totales['iva_importe'],
+            $totales['retencion_importe'],
+            $totales['total_factura'],
+        ];
+
+        return hash('sha256', implode('|', $data));
     }
 }

@@ -9,6 +9,7 @@ return new class extends Migration {
     {
         Schema::create('facturas', function (Blueprint $table) {
             $table->id('id_factura');
+            $table->string('serie', 5)->default('A');
             $table->string('numero_factura', 20)->unique();
             $table->unsignedBigInteger('id_cliente');
             $table->date('fecha_emision');
@@ -19,7 +20,8 @@ return new class extends Migration {
             $table->decimal('retencion_importe', 10, 2)->nullable();
             $table->decimal('total_factura', 10, 2);
             $table->string('forma_pago', 50)->nullable();
-            $table->boolean('anulada')->default(false); // Preparado para anulación futura
+            $table->string('hash_factura', 255)->nullable()->unique(); // Para trazabilidad
+            $table->boolean('anulada')->default(false);
             $table->timestamps();
 
             $table->foreign('id_cliente')

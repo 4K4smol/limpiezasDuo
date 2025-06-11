@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
+import { Bars3Icon, XMarkIcon, MoonIcon, SunIcon } from '@heroicons/react/24/outline';
 import classNames from 'classnames';
+import { useTheme } from '../../../contexts/ThemeContext';
 
 const navLinks = [
   { id: 'inicio', label: 'Inicio' },
@@ -13,6 +14,7 @@ function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const headerRef = useRef(null);
+  const { darkMode, toggleTheme } = useTheme();
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 10);
@@ -44,65 +46,86 @@ function Header() {
     <header
       ref={headerRef}
       className={classNames(
-        "sticky top-0 z-50 w-full bg-white border-b border-gray-100 transition-shadow duration-300",
-        isScrolled ? "shadow-md" : "shadow-sm"
+        "sticky top-0 z-50 w-full border-b transition-all duration-300 backdrop-blur",
+        isScrolled
+          ? "bg-white/80 dark:bg-gray-900/80 shadow-md"
+          : "bg-white/95 dark:bg-gray-900/95 shadow-sm"
       )}
     >
-      <nav className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
-          <div className="flex items-center space-x-4">
-            <a
-              href="#inicio"
-              onClick={(e) => scrollToSection('inicio', e)}
-              className="flex items-center space-x-2"
-              title="Ir al inicio"
-            >
-              <span className="text-2xl font-bold text-limpio-dark">
-                Limpiezas<span className="text-limpio-gold">Duo</span>
-              </span>
+      <nav className="container mx-auto flex items-center justify-between h-20 px-4 sm:px-6 lg:px-8">
+        {/* Logo */}
+        <a
+          href="#inicio"
+          onClick={(e) => scrollToSection('inicio', e)}
+          className="text-2xl font-extrabold text-limpio-dark dark:text-white flex items-center"
+          title="Volver al inicio"
+        >
+          Limpiezas<span className="text-limpio-gold">Duo</span>
+        </a>
 
-
-            </a>
-          </div>
-
-          <div className="hidden md:flex space-x-6">
-            {navLinks.map(link => (
-              <a
-                key={link.id}
-                href={`#${link.id}`}
-                onClick={(e) => scrollToSection(link.id, e)}
-                className="text-gray-700 hover:text-limpio-gold transition font-medium"
-              >
-                {link.label}
-              </a>
-            ))}
-          </div>
-
-          <div className="md:hidden">
-            <button
-              onClick={() => setMenuOpen(!menuOpen)}
-              className="p-2 text-gray-700 hover:text-limpio-gold"
-            >
-              {menuOpen ? <XMarkIcon className="h-6 w-6" /> : <Bars3Icon className="h-6 w-6" />}
-            </button>
-          </div>
-        </div>
-      </nav>
-
-      {menuOpen && (
-        <div className="md:hidden px-4 pb-4 space-y-2 bg-white border-t border-gray-100">
+        {/* Desktop navigation */}
+        <div className="hidden md:flex items-center space-x-6">
           {navLinks.map(link => (
             <a
               key={link.id}
               href={`#${link.id}`}
               onClick={(e) => scrollToSection(link.id, e)}
-              className="block text-gray-700 hover:text-limpio-gold py-2"
+              className="text-gray-700 dark:text-gray-300 font-medium hover:text-limpio-gold dark:hover:text-limpio-gold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-limpio-gold"
+            >
+              {link.label}
+            </a>
+          ))}
+
+          {/* Modo oscuro */}
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded text-gray-700 dark:text-gray-300 hover:text-limpio-gold focus:outline-none focus:ring-2 focus:ring-limpio-gold"
+            aria-label="Cambiar tema"
+          >
+            {darkMode ? <SunIcon className="h-6 w-6" /> : <MoonIcon className="h-6 w-6" />}
+          </button>
+        </div>
+
+        {/* Mobile menu toggle */}
+        <div className="md:hidden flex items-center gap-2">
+          <button
+            onClick={toggleTheme}
+            className="p-2 text-gray-700 dark:text-gray-300 hover:text-limpio-gold focus:outline-none focus:ring-2 focus:ring-limpio-gold"
+            aria-label="Cambiar tema"
+          >
+            {darkMode ? <SunIcon className="h-6 w-6" /> : <MoonIcon className="h-6 w-6" />}
+          </button>
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            aria-expanded={menuOpen}
+            aria-label="Abrir menú"
+            className="p-2 text-gray-700 dark:text-gray-300 hover:text-limpio-gold focus:outline-none focus:ring-2 focus:ring-limpio-gold"
+          >
+            {menuOpen ? <XMarkIcon className="h-6 w-6" /> : <Bars3Icon className="h-6 w-6" />}
+          </button>
+        </div>
+      </nav>
+
+      {/* Mobile menu */}
+      <div
+        className={classNames(
+          "md:hidden bg-white dark:bg-gray-900 border-t transition-all duration-300 ease-in-out overflow-hidden",
+          menuOpen ? "max-h-screen opacity-100 py-4" : "max-h-0 opacity-0 py-0"
+        )}
+      >
+        <div className="flex flex-col px-4 space-y-2">
+          {navLinks.map(link => (
+            <a
+              key={link.id}
+              href={`#${link.id}`}
+              onClick={(e) => scrollToSection(link.id, e)}
+              className="text-gray-700 dark:text-gray-300 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-limpio-gold"
             >
               {link.label}
             </a>
           ))}
         </div>
-      )}
+      </div>
     </header>
   );
 }

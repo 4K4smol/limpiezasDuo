@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\ServicioPeriodicoRequest\StoreServicioPeriodicoRequest;   // ✔ solicitud validada
-use App\Http\Resources\ServicioPeriodicoResource;      // ✔ formatea respuesta
-use App\Models\ServicioPeriodico;                      // ✔ modelo
+use App\Http\Requests\ServicioPeriodicoRequest\StoreServicioPeriodicoRequest;
+use App\Http\Resources\ServicioPeriodicoResource;
+use App\Models\ServicioPeriodico;
 use App\Services\ServicioPeriodicoService;
-use Illuminate\Support\Facades\DB;                     // ✔ transacciones
+use Illuminate\Support\Facades\DB;
 
 class ServicioPeriodicoController extends Controller
 {

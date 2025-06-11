@@ -14,8 +14,10 @@ return new class extends Migration {
             $table->integer('cantidad')->default(1);
             $table->decimal('precio_unitario', 10, 2);
             $table->decimal('subtotal', 10, 2);
+            $table->decimal('iva_porcentaje', 5, 2)->nullable();
+            $table->decimal('iva_importe', 10, 2)->nullable();
+            $table->decimal('total_linea', 10, 2)->nullable();
             $table->timestamps();
-            // $table->softDeletes(); // Si deseas conservar detalles eliminados
 
             $table->foreign('id_factura')
                 ->references('id_factura')

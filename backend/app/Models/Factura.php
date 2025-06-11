@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models; // O el namespace donde tengas tu modelo
+namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -9,21 +9,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Factura extends Model
 {
-    use HasFactory; // Asegúrate de tener HasFactory si quieres usar factories para Factura también
+    use HasFactory;
 
-    protected $table = 'facturas'; // Correcto
-
-    // --- AÑADE ESTA LÍNEA ---
+    protected $table = 'facturas';
     protected $primaryKey = 'id_factura';
-    // --------------------------
-
-    // Indica que la PK no es autoincremental si NO lo es (normalmente con ->id() SÍ lo es)
-    // public $incrementing = false;
-
-    // Indica el tipo de la PK si NO es integer (normalmente con ->id() SÍ lo es)
-    // protected $keyType = 'string';
 
     protected $fillable = [
+        'serie',
         'numero_factura',
         'id_cliente',
         'fecha_emision',
@@ -34,6 +26,8 @@ class Factura extends Model
         'retencion_importe',
         'total_factura',
         'forma_pago',
+        'hash_factura',
+        'anulada',
     ];
 
     protected $casts = [
@@ -44,23 +38,22 @@ class Factura extends Model
         'retencion_porcentaje' => 'decimal:2',
         'retencion_importe' => 'decimal:2',
         'total_factura' => 'decimal:2',
+        'anulada' => 'boolean',
     ];
 
     /**
-     * Obtiene los detalles asociados a la factura.
-     */
-    public function detalles(): HasMany // O 'items' si prefieres ese nombre
-    {
-        // Asegúrate que el nombre de la FK y la PK local coincidan
-        return $this->hasMany(FacturaDetalle::class, 'id_factura', 'id_factura');
-    }
-
-    /**
-     * Obtiene el cliente al que pertenece la factura.
+     * Relación: Factura pertenece a un Cliente.
      */
     public function cliente(): BelongsTo
     {
-         // Asegúrate que el nombre de la FK y la PK del otro modelo coincidan
         return $this->belongsTo(Cliente::class, 'id_cliente', 'id_cliente');
+    }
+
+    /**
+     * Relación: Factura tiene muchos detalles.
+     */
+    public function detalles(): HasMany
+    {
+        return $this->hasMany(FacturaDetalle::class, 'id_factura', 'id_factura');
     }
 }

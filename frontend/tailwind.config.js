@@ -1,27 +1,26 @@
 /** @type {import('tailwindcss').Config} */
-const defaultTheme = require('tailwindcss/defaultTheme') // Necesitas importar esto
+const defaultTheme = require('tailwindcss/defaultTheme')
 
 export default {
+  darkMode: 'class', // 👈 IMPORTANTE para permitir cambiar tema vía clase .dark
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {
-      // Definir las familias de fuentes
       fontFamily: {
-        sans: ['Lato', ...defaultTheme.fontFamily.sans], // Fuente por defecto para cuerpo
-        heading: ['Poppins', ...defaultTheme.fontFamily.sans], // Fuente para títulos
+        sans: ['Lato', ...defaultTheme.fontFamily.sans],
+        heading: ['Poppins', ...defaultTheme.fontFamily.sans],
       },
-      // Definir colores personalizados (puedes ajustar los tonos exactos)
       colors: {
         'limpio-gold': {
-          DEFAULT: '#daa520', // Un dorado estándar, puedes usar amber-500/600 de Tailwind también
-          dark: '#b8860b',  // Un tono más oscuro para hover/bordes si es necesario
+          DEFAULT: '#daa520',
+          dark: '#b8860b',
         },
-        'limpio-dark': '#1f2937', // Equivalente a gray-800 o 900
-        'limpio-light': '#f9fafb', // Equivalente a gray-50
-        'limpio-gray': '#6b7280', // Equivalente a gray-500
+        'limpio-dark': '#1f2937',
+        'limpio-light': '#f9fafb',
+        'limpio-gray': '#6b7280',
       }
     },
   },
