@@ -1,39 +1,95 @@
 import React, { useEffect, useState } from 'react';
 import { facturaService } from '../services/facturaService';
+import { clienteService } from '../../clientes/services/clienteService';
 import FacturaForm from '../components/FacturaForm';
 
 export default function FacturaPage() {
   const [facturas, setFacturas] = useState([]);
+  const [clientes, setClientes] = useState([]);
   const [dialog, setDialog] = useState({ open: false, data: null });
 
-  const loadFacturas = () => {
-    facturaService.list().then(setFacturas).catch(console.error);
-  };
+  // Carga y normalización de datos
+  const normalize = (f) => ({
+    ...f,
+    total_factura: parseFloat(f.total_factura) || 0,
+    importe_pagado: parseFloat(f.importe_pagado) || 0,
+  });
+
+  const loadFacturas = () =>
+    facturaService
+      .list()
+      .then((data) => setFacturas(data.map(normalize)))
+      .catch(console.error);
+
+  const loadClientes = () =>
+    clienteService
+      .list()
+      .then(setClientes)
+      .catch(console.error);
 
   useEffect(() => {
     loadFacturas();
+    loadClientes();
   }, []);
 
+  // Apertura/cierre del modal de formulario
   const openNew = () => setDialog({ open: true, data: null });
+  const openEdit = (f) => setDialog({ open: true, data: f });
   const closeForm = () => setDialog({ open: false, data: null });
 
-  const saveFactura = (data) => {
-    const action = data.id_factura
+  // Crear/actualizar
+  const saveFactura = (data) =>
+    (data.id_factura
       ? facturaService.update(data.id_factura, data)
-      : facturaService.create(data);
+      : facturaService.create(data)
+    )
+      .then(() => {
+        loadFacturas();
+        closeForm();
+      })
+      .catch(console.error);
 
-    action.then(() => {
-      loadFacturas();
-      closeForm();
-    });
+  // Descargar PDF
+  const descargar = (id) =>
+    facturaService
+      .descargar(id)
+      .catch((err) => {
+        console.error(err);
+        alert('Error al descargar el PDF.');
+      });
+
+  // Exportar JSON
+  const exportarJSON = (id) =>
+    facturaService
+      .exportarJSON(id)
+      .then(({ archivo }) => window.open(`/storage/${archivo}`, '_blank'))
+      .catch((err) => {
+        console.error(err);
+        alert('Error al exportar JSON.');
+      });
+
+  // Pagar factura
+  const pagar = (id) => {
+    const monto = prompt('Introduce el importe pagado:');
+    if (monto == null) return;
+    facturaService
+      .pagar(id, { monto: parseFloat(monto), fecha: new Date().toISOString(), metodo: 'manual' })
+      .then(() => loadFacturas())
+      .catch((err) => {
+        console.error(err);
+        alert('Error al registrar el pago.');
+      });
   };
 
-  const descargarFactura = (id_factura) => {
-    facturaService.descargar(id_factura).catch((err) => {
-      console.error('Error al descargar PDF:', err);
-      alert('No se pudo descargar la factura.');
-    });
-  };
+  // Duplicar factura
+  const duplicar = (id) =>
+    facturaService
+      .duplicar(id)
+      .then(() => loadFacturas())
+      .catch((err) => {
+        console.error(err);
+        alert('Error al duplicar la factura.');
+      });
 
   return (
     <section className="p-6 space-y-6">
@@ -54,7 +110,9 @@ export default function FacturaPage() {
               <th className="p-3">Número</th>
               <th className="p-3">Cliente</th>
               <th className="p-3 text-right">Total</th>
-              <th className="p-3">Fecha</th>
+              <th className="p-3">Emisión</th>
+              <th className="p-3">Estado</th>
+              <th className="p-3 text-right">Pagado</th>
               <th className="p-3 text-center">Acciones</th>
             </tr>
           </thead>
@@ -64,23 +122,53 @@ export default function FacturaPage() {
                 <tr key={f.id_factura} className="border-t hover:bg-gray-50">
                   <td className="p-3">{f.numero_factura}</td>
                   <td className="p-3">
-                    {f.cliente?.razon_social || f.cliente?.nombre || f.id_cliente}
+                    {f.cliente?.razon_social || f.cliente?.nombre}
                   </td>
-                  <td className="p-3 text-right">{f.total_factura.toFixed(2)} €</td>
+                  <td className="p-3 text-right">
+                    {f.total_factura.toFixed(2)} €
+                  </td>
                   <td className="p-3">{f.fecha_emision}</td>
-                  <td className="p-3 text-center">
+                  <td className="p-3">{f.estado_pago}</td>
+                  <td className="p-3 text-right">
+                    {f.importe_pagado.toFixed(2)} €
+                  </td>
+                  <td className="p-3 text-center space-x-2">
                     <button
-                      onClick={() => descargarFactura(f.id_factura)}
+                      onClick={() => openEdit(f)}
+                      className="text-green-600 hover:underline"
+                    >
+                      ✎
+                    </button>
+                    <button
+                      onClick={() => descargar(f.id_factura)}
                       className="text-blue-600 hover:underline"
                     >
-                      Descargar PDF
+                      PDF
+                    </button>
+                    <button
+                      onClick={() => exportarJSON(f.id_factura)}
+                      className="text-indigo-600 hover:underline"
+                    >
+                      JSON
+                    </button>
+                    <button
+                      onClick={() => pagar(f.id_factura)}
+                      className="text-yellow-600 hover:underline"
+                    >
+                      Pagar
+                    </button>
+                    <button
+                      onClick={() => duplicar(f.id_factura)}
+                      className="text-gray-600 hover:underline"
+                    >
+                      Duplicar
                     </button>
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={5} className="p-4 text-center text-gray-500">
+                <td colSpan={7} className="p-4 text-center text-gray-500">
                   No hay facturas registradas
                 </td>
               </tr>
@@ -94,6 +182,7 @@ export default function FacturaPage() {
         onClose={closeForm}
         onSave={saveFactura}
         initialValues={dialog.data}
+        clientes={clientes}
       />
     </section>
   );

@@ -1,124 +1,212 @@
-// src/ordenesTrabajo/components/OrdenTrabajoPage.jsx
-import React, { useEffect, useState } from "react";
-import axios from "../../../services/axios";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ordenService } from '../services/ordenService';
 
-const OrdenTrabajoPage = () => {
+export default function OrdenTrabajoPage() {
   const [ordenes, setOrdenes] = useState([]);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  /* ---------- API ---------- */
-  const cargarOrdenes = () =>
-    axios
-      .get("/ordenes-trabajo")
-      .then((res) => setOrdenes(res.data.data))
-      .catch((err) => {
-        console.error("Error cargando órdenes:", err);
+  const cargar = () => {
+    setLoading(true);
+    return ordenService
+      .list()
+      .then(setOrdenes)
+      .catch((error) => {
+        console.error('Error loading orders:', error);
         setOrdenes([]);
-      });
-
-  const eliminarOrden = (id) => {
-    if (confirm("¿Estás seguro de que deseas eliminar esta orden?")) {
-      axios
-        .delete(`/ordenes-trabajo/${id}`)
-        .then(() => {
-          alert("Orden eliminada");
-          cargarOrdenes();
-        })
-        .catch((err) => console.error("Error al eliminar:", err));
-    }
+      })
+      .finally(() => setLoading(false));
   };
 
-  const cambiarEstado = (id, nuevoEstado) =>
-    axios
-      .patch(`/ordenes-trabajo/${id}/estado`, { estado: nuevoEstado })
-      .then(() => {
-        alert(`Estado cambiado a "${nuevoEstado}"`);
-        cargarOrdenes();
-      })
-      .catch((err) => console.error("Error al cambiar estado:", err));
-
-  /* ---------- efectos ---------- */
   useEffect(() => {
-    cargarOrdenes();
+    cargar();
   }, []);
 
-  /* ---------- render ---------- */
+  const eliminar = (id) => {
+    if (!confirm('¿Confirmas eliminar esta orden?')) return;
+    
+    setLoading(true);
+    ordenService
+      .delete(id)
+      .then(() => {
+        alert('Orden eliminada exitosamente');
+        cargar();
+      })
+      .catch((error) => {
+        console.error('Error deleting order:', error);
+        alert('Error al eliminar la orden');
+        setLoading(false);
+      });
+  };
+
+  const cambiarEstado = (id, nuevoEstado) => {
+    setLoading(true);
+    
+    // Ensure we're sending the estado in the correct format
+    const payload = { estado: nuevoEstado };
+    
+    ordenService
+      .updateEstado(id, payload) // Send payload object instead of just the string
+      .then(() => {
+        alert(`Estado cambiado a: ${nuevoEstado}`);
+        cargar();
+      })
+      .catch((error) => {
+        console.error('Error updating estado:', error);
+        const errorMessage = error.response?.data?.message || 'Error al cambiar el estado';
+        alert(errorMessage);
+        setLoading(false);
+      });
+  };
+
+  const facturar = (id) => {
+    setLoading(true);
+    
+    ordenService
+      .facturar(id)
+      .then((f) => {
+        alert(`Factura generada: ${f.numero_factura}`);
+        cargar();
+      })
+      .catch((error) => {
+        console.error('Error generating invoice:', error);
+        const errorMessage = error.response?.data?.error || 'Error al generar la factura';
+        alert(errorMessage);
+        setLoading(false);
+      });
+  };
+
+  if (loading) {
+    return (
+      <div className="p-4">
+        <p className="text-center">Cargando...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="p-4">
-      {/* Cabecera + CTA */}
-      <header className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
+      <header className="flex justify-between mb-6">
         <h1 className="text-2xl font-bold">Órdenes de Trabajo</h1>
-
-        <div className="flex gap-3">
-          {/* Orden puntual */}
+        <div className="flex gap-2">
           <button
-            onClick={() => navigate("/ordenes-trabajo/nueva")}
+            onClick={() => navigate('/ordenes-trabajo/nueva')}
             className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
           >
-            + Orden puntual
+            + Puntual
           </button>
-
-          {/* Servicio periódico */}
           <button
-            onClick={() => navigate("/servicios-periodicos/nuevo")}
-            className="bg-emerald-600 text-white px-4 py-2 rounded hover:bg-emerald-700"
+            onClick={() => navigate('/servicios-periodicos/nuevo')}
+            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
           >
-            + Servicio periódico
+            + Periódico
           </button>
         </div>
       </header>
 
-      {/* Listado de órdenes */}
-      {Array.isArray(ordenes) && ordenes.length ? (
-        ordenes.map((orden) => (
-          <article
-            key={orden.id_orden}
-            className="border p-4 mb-4 rounded shadow-sm space-y-1"
-          >
-            <p>
-              <strong>Cliente:</strong>{" "}
-              {orden.cliente?.razon_social || "Sin nombre"}
-            </p>
-            <p>
-              <strong>Dirección:</strong>{" "}
-              {orden.ubicacion?.direccion || "Sin dirección"}
-            </p>
-            <p>
-              <strong>Fecha:</strong> {orden.fecha_programada} -{" "}
-              {orden.hora_programada}
-            </p>
-            <p>
-              <strong>Estado:</strong> {orden.estado}
-            </p>
+      {ordenes.length ? (
+        ordenes.map((o) => (
+          <article key={o.id_orden} className="border p-4 mb-4 rounded shadow">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <p className="mb-2">
+                  <strong>Cliente:</strong> {o.cliente?.razon_social || 'N/A'}
+                </p>
+                <p className="mb-2">
+                  <strong>Dirección:</strong> {o.ubicacion?.direccion || 'N/A'}
+                </p>
+              </div>
+              <div>
+                <p className="mb-2">
+                  <strong>Fecha:</strong> {o.fecha_programada} – {o.hora_programada}
+                </p>
+                <p className="mb-2">
+                  <strong>Estado:</strong> 
+                  <span className={`ml-2 px-2 py-1 rounded text-sm ${
+                    o.estado === 'Completado' ? 'bg-green-100 text-green-800' :
+                    o.estado === 'Cancelado' ? 'bg-red-100 text-red-800' :
+                    'bg-gray-100 text-gray-800'
+                  }`}>
+                    {o.estado}
+                  </span>
+                </p>
+              </div>
+            </div>
 
-            <div className="mt-3 flex gap-2 flex-wrap">
+            {/* Services details if available */}
+            {o.detalles && o.detalles.length > 0 && (
+              <div className="mb-4">
+                <strong>Servicios:</strong>
+                <ul className="list-disc list-inside ml-4 mt-1">
+                  {o.detalles.map((detalle, index) => (
+                    <li key={index} className="text-sm text-gray-600">
+                      {detalle.servicio?.nombre || 'Servicio'} - {detalle.horas_realizadas} horas
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <div className="flex flex-wrap gap-2">
+              {o.estado !== 'Completado' && o.estado !== 'Cancelado' && (
+                <>
+                  <button
+                    onClick={() => cambiarEstado(o.id_orden, 'Completado')}
+                    className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 text-sm"
+                  >
+                    Completar
+                  </button>
+                </>
+              )}
+              
+              {o.estado === 'Completado' && !o.id_factura && (
+                <button
+                  onClick={() => facturar(o.id_orden)}
+                  className="bg-indigo-500 text-white px-3 py-1 rounded hover:bg-indigo-600 text-sm"
+                >
+                  Facturar
+                </button>
+              )}
+
+              {o.estado !== 'Cancelado' && (
+                <button
+                  onClick={() => cambiarEstado(o.id_orden, 'Cancelado')}
+                  className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 text-sm"
+                >
+                  Cancelar
+                </button>
+              )}
+
               <button
-                onClick={() => cambiarEstado(orden.id_orden, "Completado")}
-                className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
-              >
-                Marcar como Completado
-              </button>
-              <button
-                onClick={() => cambiarEstado(orden.id_orden, "Cancelado")}
-                className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600"
-              >
-                Cancelar Orden
-              </button>
-              <button
-                onClick={() => eliminarOrden(orden.id_orden)}
-                className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
+                onClick={() => eliminar(o.id_orden)}
+                className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 text-sm"
               >
                 Eliminar
               </button>
             </div>
+
+            {/* Show invoice info if available */}
+            {o.id_factura && (
+              <div className="mt-3 p-2 bg-green-50 border border-green-200 rounded">
+                <p className="text-sm text-green-700">
+                  <strong>Facturado:</strong> Factura #{o.numero_factura || o.id_factura}
+                </p>
+              </div>
+            )}
           </article>
         ))
       ) : (
-        <p>No hay órdenes disponibles.</p>
+        <div className="text-center py-8">
+          <p className="text-gray-500 mb-4">No hay órdenes disponibles.</p>
+          <button
+            onClick={() => navigate('/ordenes-trabajo/nueva')}
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          >
+            Crear primera orden
+          </button>
+        </div>
       )}
     </div>
   );
-};
-
-export default OrdenTrabajoPage;
+}
