@@ -23,7 +23,7 @@ class UpdateFacturaRequest extends FormRequest
 
             'iva_porcentaje' => 'sometimes|numeric|min:0|max:100',
             'retencion_porcentaje' => 'nullable|numeric|min:0|max:100',
-            'forma_pago' => 'nullable|string|max:100',
+            'forma_pago' => ['nullable', 'in:metálico,transferencia,domiciliación'],
             // 'fecha_emision' => 'nullable|date', // Si se puede actualizar la fecha
         ];
     }

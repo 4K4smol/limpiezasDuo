@@ -1,30 +1,34 @@
 const base = `${import.meta.env.VITE_API_URL}/api/facturas`;
 
 /**
- * Manejo estándar de respuestas fetch.
+ * Manejo estándar de respuestas HTTP.
  */
-const handleResponse = async (r) => {
-  if (r.ok) return r.json().then((d) => d.data ?? d);
+const handleResponse = async (response) => {
+  if (response.ok) {
+    const data = await response.json();
+    return data.data ?? data;
+  }
 
-  const contentType = r.headers.get('content-type');
-  let data = {};
+  const contentType = response.headers.get('content-type');
+  let errorData = {};
 
   if (contentType?.includes('application/json')) {
-    data = await r.json();
+    errorData = await response.json();
   }
 
   const error = new Error('Error en la solicitud');
-  error.status = r.status;
-  error.data = data;
+  error.status = response.status;
+  error.data = errorData;
   throw error;
 };
 
 /**
- * Servicio para gestión de facturas.
+ * Servicio de facturación: conexión con API backend.
  */
 export const facturaService = {
   /**
-   * Lista todas las facturas.
+   * Obtiene listado de facturas.
+   * @returns {Promise<Array>}
    */
   list: () =>
     fetch(base, {
@@ -33,7 +37,9 @@ export const facturaService = {
     }).then(handleResponse),
 
   /**
-   * Obtiene una factura por ID.
+   * Obtiene una factura por su ID.
+   * @param {number} id
+   * @returns {Promise<Object>}
    */
   get: (id) =>
     fetch(`${base}/${id}`, {
@@ -42,7 +48,9 @@ export const facturaService = {
     }).then(handleResponse),
 
   /**
-   * Crea una nueva factura. Siempre fuerza retención del 15%.
+   * Crea una nueva factura.
+   * @param {Object} data
+   * @returns {Promise<Object>}
    */
   create: (data) =>
     fetch(base, {
@@ -51,12 +59,15 @@ export const facturaService = {
       credentials: 'include',
       body: JSON.stringify({
         ...data,
-        retencion_porcentaje: 15, // retención fija
+        retencion_porcentaje: 15,
       }),
     }).then(handleResponse),
 
   /**
    * Actualiza una factura existente.
+   * @param {number} id
+   * @param {Object} data
+   * @returns {Promise<Object>}
    */
   update: (id, data) =>
     fetch(`${base}/${id}`, {
@@ -65,12 +76,14 @@ export const facturaService = {
       credentials: 'include',
       body: JSON.stringify({
         ...data,
-        retencion_porcentaje: 15, // refuerzo también al editar
+        retencion_porcentaje: 15,
       }),
     }).then(handleResponse),
 
   /**
-   * Elimina una factura (debería ser anulación lógica, no física).
+   * Elimina (lógicamente) una factura.
+   * @param {number} id
+   * @returns {Promise<void>}
    */
   remove: (id) =>
     fetch(`${base}/${id}`, {
@@ -79,16 +92,17 @@ export const facturaService = {
     }).then(handleResponse),
 
   /**
-   * Descarga el PDF de la factura por ID.
+   * Descarga el PDF de una factura.
+   * @param {number} id
+   * @returns {Promise<void>}
    */
   descargar: (id) =>
     fetch(`${base}/${id}/descargar`, {
       method: 'GET',
       credentials: 'include',
-    }).then((r) => {
-      if (!r.ok) throw new Error('Error al descargar el PDF');
-
-      return r.blob().then((blob) => {
+    }).then((res) => {
+      if (!res.ok) throw new Error('Error al descargar el PDF');
+      return res.blob().then((blob) => {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -100,22 +114,49 @@ export const facturaService = {
     }),
 
   /**
-   * Registra un pago sobre la factura.
+   * Exporta una factura en formato JSON legal (VeriFactu).
+   * @param {number} id
+   * @returns {Promise<{archivo: string}>}
+   */
+  exportarJSON: (id) =>
+    fetch(`${base}/${id}/exportar-json`, {
+      method: 'GET',
+      credentials: 'include',
+    }).then(handleResponse),
+
+  /**
+   * Registra un pago parcial o total.
+   * @param {number} id
+   * @param {{ monto: number, fecha: string, metodo: string }} data
+   * @returns {Promise<Object>}
    */
   pagar: (id, data) =>
     fetch(`${base}/${id}/pagar`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify(data), // { monto, fecha, metodo }
+      body: JSON.stringify(data),
     }).then(handleResponse),
 
   /**
    * Duplica una factura existente.
+   * @param {number} id
+   * @returns {Promise<Object>}
    */
   duplicar: (id) =>
     fetch(`${base}/${id}/duplicar`, {
       method: 'POST',
+      credentials: 'include',
+    }).then(handleResponse),
+
+  /**
+   * Anula una factura emitida (lógicamente).
+   * @param {number} id
+   * @returns {Promise<Object>}
+   */
+  anular: (id) =>
+    fetch(`${base}/${id}/anular`, {
+      method: 'PATCH',
       credentials: 'include',
     }).then(handleResponse),
 };

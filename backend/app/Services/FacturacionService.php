@@ -34,8 +34,13 @@ class FacturacionService
         $totales = $this->calcularTotales($items, $ivaPorcentaje, $retencionPorcentaje);
 
         return DB::transaction(function () use (
-            $cliente, $numeroFactura, $fechaEmision, $formaPago,
-            $ivaPorcentaje, $retencionPorcentaje, $totales
+            $cliente,
+            $numeroFactura,
+            $fechaEmision,
+            $formaPago,
+            $ivaPorcentaje,
+            $retencionPorcentaje,
+            $totales
         ) {
             $factura = Factura::create([
                 'serie' => 'A',
@@ -76,7 +81,13 @@ class FacturacionService
         $totales = $this->calcularTotales($datos['items'], $iva, $retencion);
 
         return DB::transaction(function () use (
-            $factura, $datos, $clienteId, $fechaEmision, $iva, $retencion, $totales
+            $factura,
+            $datos,
+            $clienteId,
+            $fechaEmision,
+            $iva,
+            $retencion,
+            $totales
         ) {
             $factura->update([
                 'id_cliente' => $clienteId,
@@ -97,6 +108,30 @@ class FacturacionService
             return $factura->refresh()->load('cliente', 'detalles');
         });
     }
+
+    /**
+    * Anula una factura si aún no ha sido anulada.
+    *
+    * @param Factura $factura La instancia de la factura a anular.
+    * @return Factura La factura anulada.
+    * @throws InvalidArgumentException Si la factura ya está anulada.
+    */
+    public function anularFactura(Factura $factura): Factura
+    {
+        if ($factura->anulada) {
+            throw new InvalidArgumentException("La factura ya está anulada.");
+        }
+
+        return DB::transaction(function () use ($factura) {
+            $factura->anulada = true;
+            $factura->hash_anterior = $factura->hash; // guardamos el hash previo
+            $factura->hash = null; // puede regenerarse si se desea
+            $factura->save();
+
+            return $factura;
+        });
+    }
+
 
     /**
      * Calcula totales y estructura los detalles de la factura.

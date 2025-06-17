@@ -89,6 +89,10 @@ class FacturaController extends Controller
             return response()->json(['message' => 'Factura no encontrada.'], 404);
         }
 
+        if ($factura->anulada) {
+           throw new \InvalidArgumentException("No se puede modificar o pagar una factura anulada.");
+        }
+
         try {
             $facturaActualizada = $this->facturacionService->actualizarFactura($factura, $request->validated());
             return response()->json(new FacturaResource($facturaActualizada), 200);
@@ -128,5 +132,29 @@ class FacturaController extends Controller
         $factura = Factura::with('cliente', 'detalles')->findOrFail($id);
         $pdf = Pdf::loadView('facturas.pdf', compact('factura'));
         return $pdf->download("factura-{$factura->numero_factura}.pdf");
+    }
+
+    /**
+     * Anula una factura mediante el servicio de facturación.
+     *
+     * @param int $id ID de la factura a anular.
+     * @param FacturacionService $svc Servicio encargado de procesar la anulación.
+     * @return JsonResponse Respuesta JSON con el resultado de la operación.
+     */
+    public function anular(int $id, FacturacionService $svc): JsonResponse
+    {
+        $factura = Factura::findOrFail($id);
+
+        try {
+            $anulada = $svc->anularFactura($factura);
+            return response()->json([
+                'message' => 'Factura anulada correctamente',
+                'data'    => $anulada,
+            ]);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json(['error' => $e->getMessage()], 422);
+        } catch (\Throwable $e) {
+            return response()->json(['error' => 'Error al anular la factura'], 500);
+        }
     }
 }

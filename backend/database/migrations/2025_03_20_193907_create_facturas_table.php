@@ -31,7 +31,7 @@ return new class extends Migration {
             $table->decimal('total_factura', 10, 2);
 
             // Pago
-            $table->enum('forma_pago', ['cargo a cuenta', 'metálico'])->nullable();
+            $table->string('forma_pago', 100)->nullable(); // más flexible
             $table->decimal('importe_pagado', 10, 2)->default(0.00);
             $table->enum('estado_pago', ['pendiente', 'parcial', 'pagado'])->default('pendiente');
 

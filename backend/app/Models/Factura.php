@@ -55,4 +55,14 @@ class Factura extends Model
     {
         return $this->hasMany(FacturaLog::class, 'id_factura');
     }
+
+    public function pagos()
+    {
+        return $this->hasMany(Pago::class, 'id_factura');
+    }
+
+    public function estaAnulada(): bool
+    {
+        return $this->anulada === true;
+    }
 }

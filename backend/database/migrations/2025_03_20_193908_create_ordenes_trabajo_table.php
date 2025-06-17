@@ -4,38 +4,44 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
         Schema::create('ordenes_trabajo', function (Blueprint $table) {
             $table->id('id_orden');
+
             $table->unsignedBigInteger('id_cliente');
             $table->unsignedBigInteger('id_ubicacion');
             $table->unsignedBigInteger('id_empleado')->nullable();
+            $table->unsignedBigInteger('id_factura')->nullable();
+
             $table->date('fecha_creacion')->default(now());
             $table->date('fecha_programada')->nullable();
             $table->time('hora_programada')->nullable();
+
             $table->string('estado', 50)
                 ->default('Pendiente')
                 ->check("estado IN ('Pendiente', 'Completado', 'Cancelado')");
+
             $table->text('observaciones')->nullable();
             $table->timestamps();
 
+            // Relaciones
             $table->foreign('id_cliente')
-                  ->references('id_cliente')
-                  ->on('clientes')
-                  ->onDelete('cascade');
+                ->references('id_cliente')->on('clientes')
+                ->onDelete('cascade');
 
             $table->foreign('id_ubicacion')
-                  ->references('id_ubicacion')
-                  ->on('ubicaciones_clientes')
-                  ->onDelete('restrict');
+                ->references('id_ubicacion')->on('ubicaciones_clientes')
+                ->onDelete('restrict');
 
             $table->foreign('id_empleado')
-                  ->references('id_empleado')
-                  ->on('empleados')
-                  ->onDelete('set null');
+                ->references('id_empleado')->on('empleados')
+                ->onDelete('set null');
+
+            $table->foreign('id_factura')
+                ->references('id_factura')->on('facturas')
+                ->onDelete('set null');
         });
     }
 

@@ -3,13 +3,19 @@
 namespace App\Services;
 
 use App\Models\Factura;
-use App\Models\FacturaLog;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use App\Enums\AccionFactura;
+use App\Services\FacturaLogService;
 
 class FacturacionVeriFactuService
 {
+    protected FacturaLogService $log;
+
+    public function __construct(FacturaLogService $log)
+    {
+        $this->log = $log;
+    }
+
     public function exportarFacturaJson(Factura $factura): string
     {
         $datos = [
@@ -17,45 +23,39 @@ class FacturacionVeriFactuService
             'fecha_emision' => $factura->fecha_emision->toDateString(),
             'cliente' => [
                 'nombre' => $factura->cliente->razon_social,
-                'cif' => $factura->cliente->cif,
-                'email' => $factura->cliente->email,
+                'cif'    => $factura->cliente->cif,
+                'email'  => $factura->cliente->email,
             ],
             'lineas' => $factura->detalles->map(function ($d) {
                 return [
-                    'descripcion' => $d->descripcion_concepto,
-                    'cantidad' => $d->cantidad,
+                    'descripcion'     => $d->descripcion_concepto,
+                    'cantidad'        => $d->cantidad,
                     'precio_unitario' => $d->precio_unitario,
-                    'subtotal' => $d->subtotal,
-                    'iva' => $d->iva_importe,
-                    'total' => $d->total_linea,
+                    'subtotal'        => $d->subtotal,
+                    'iva'             => $d->iva_importe,
+                    'total'           => $d->total_linea,
                 ];
             }),
             'totales' => [
-                'base_imponible' => $factura->base_imponible,
-                'iva_importe' => $factura->iva_importe,
-                'retencion_importe' => $factura->retencion_importe,
-                'total_factura' => $factura->total_factura,
+                'base_imponible'     => $factura->base_imponible,
+                'iva_importe'        => $factura->iva_importe,
+                'retencion_importe'  => $factura->retencion_importe,
+                'total_factura'      => $factura->total_factura,
             ],
-            'hash' => $factura->hash_factura,
+            'hash'          => $factura->hash_factura,
             'hash_anterior' => $factura->hash_anterior,
         ];
 
-        $path = 'verifactu/' . $factura->numero_factura . '.json';
-        Storage::disk('local')->put($path, json_encode($datos, JSON_PRETTY_PRINT));
+        // Convertimos a JSON y guardamos en /storage/app/public/verifactu/
+        $nombre = $factura->numero_factura . '.json';
+        $contenido = json_encode($datos, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        Storage::disk('public')->put('verifactu/' . $nombre, $contenido);
 
-        $this->registrarLog($factura, 'exportado_json', 'Exportación JSON VeriFactu');
+        // Registrar log
+        $this->log->registrar($factura, AccionFactura::EXPORTADA_JSON, 'Exportación JSON VeriFactu');
 
-        return $path;
-    }
+        // Ruta pública accesible desde el navegador
+        return asset("storage/verifactu/$nombre"); // solo una barra, sin doble slash
 
-    public function registrarLog(Factura $factura, string $accion, ?string $comentario = null): void
-    {
-        FacturaLog::create([
-            'id_factura' => $factura->id_factura,
-            'accion' => AccionFactura::EXPORTADA_JSON,
-            'usuario' => 'sistema',
-            'ip' => request()->ip(),
-            'comentario' => 'Exportación JSON VeriFactu',
-        ]);
     }
 }
