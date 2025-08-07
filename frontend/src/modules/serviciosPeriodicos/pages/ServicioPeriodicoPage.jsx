@@ -1,34 +1,30 @@
-import { useEffect, useState, useCallback } from 'react'; // Agregamos useCallback
-import axios from "../../../services/axios";
-import { Link } from "react-router-dom";
-import BotonGenerarOrdenes from '../components/BotonGenerarOrdenes'; // Asegúrate de que esta ruta sea correcta
-
-/* Endpoint */
-const API_CONTRATOS = "/servicios-periodicos";
+import React, { useEffect, useState, useCallback } from 'react';
+import { Link } from 'react-router-dom';
+import { servicioPeriodicoService } from '../services/servicioPeriodicoService';
+import BotonGenerarOrdenes from '../components/BotonGenerarOrdenes';
 
 export default function ServicioPeriodicoPage() {
   const [servicios, setServicios] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null); // Estado para manejar errores
+  const [error, setError] = useState(null);
 
-  // Función para cargar los servicios, memoizada con useCallback
   const fetchServicios = useCallback(async () => {
     setLoading(true);
-    setError(null); // Limpiar cualquier error previo antes de una nueva consulta
+    setError(null);
     try {
-      const res = await axios.get(API_CONTRATOS);
-      setServicios(res.data.data || []);
+      const data = await servicioPeriodicoService.list();
+      setServicios(data || []);
     } catch (err) {
       console.error("Error al cargar servicios periódicos:", err);
-      setError("No se pudieron cargar los servicios periódicos. Intenta de nuevo más tarde.");
+      setError("No se pudieron cargar los servicios periódicos.");
     } finally {
       setLoading(false);
     }
-  }, []); // El array de dependencias vacío asegura que la función se cree una sola vez
+  }, []);
 
   useEffect(() => {
-    fetchServicios(); // Llamada inicial para cargar los datos
-  }, [fetchServicios]); // El efecto se ejecuta cuando fetchServicios cambia (solo en el montaje inicial debido a useCallback)
+    fetchServicios();
+  }, [fetchServicios]);
 
   if (loading) {
     return (
@@ -52,8 +48,8 @@ export default function ServicioPeriodicoPage() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-800">Servicios Periódicos</h1>
         <Link
-          to="/servicios-periodicos/nuevo" // Asegúrate de que esta sea la ruta correcta para crear
-          className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          to="/servicios-periodicos/nuevo"
+          className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
         >
           Nuevo Servicio Periódico
         </Link>
@@ -69,39 +65,31 @@ export default function ServicioPeriodicoPage() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Cliente
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Periodicidad
-                </th>
-                <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Activo
-                </th>
-                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Acción
-                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cliente</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Periodicidad</th>
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Activo</th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Acción</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {servicios.map(sp => (
-                <tr key={sp.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                <tr key={sp.id_servicio_periodico}>
+                  <td className="px-6 py-4 text-sm font-medium text-gray-900">
                     {sp.cliente?.razon_social || 'N/A'}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {sp.periodicidad}{sp.periodicidad === 1 ? ' vez' : ' veces'}/mes
+                  <td className="px-6 py-4 text-sm text-gray-500">
+                    {sp.frecuencia || `${sp.periodicidad_mensual} veces/mes`}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-semibold">
-                    {sp.activo ? (
-                      <span className="text-green-600">Sí</span>
-                    ) : (
-                      <span className="text-red-600">No</span>
-                    )}
+                  <td className="px-6 py-4 text-center text-sm">
+                    <span className={sp.activo ? 'text-green-600' : 'text-red-600'}>
+                      {sp.activo ? 'Sí' : 'No'}
+                    </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    {/* Pasamos la función fetchServicios como prop para que el botón pueda activarla */}
-                    <BotonGenerarOrdenes servicioId={sp.id} onOrdersGenerated={fetchServicios} />
+                  <td className="px-6 py-4 text-right text-sm">
+                    <BotonGenerarOrdenes
+                      servicioId={sp.id_servicio_periodico}
+                      onOrdersGenerated={fetchServicios}
+                    />
                   </td>
                 </tr>
               ))}

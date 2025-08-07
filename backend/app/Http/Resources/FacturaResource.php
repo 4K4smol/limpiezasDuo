@@ -22,9 +22,9 @@ class FacturaResource extends JsonResource
             'retencion_importe'    => $this->retencion_importe !== null ? (float) $this->retencion_importe : null,
             'total_factura'   => (float) $this->total_factura,
             'forma_pago'      => $this->forma_pago,
+            'anulada'         => (bool) $this->anulada,
             'creado'          => $this->created_at?->toIso8601String(),
             'actualizado'     => $this->updated_at?->toIso8601String(),
         ];
     }
 }
-

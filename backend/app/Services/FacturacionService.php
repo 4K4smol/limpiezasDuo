@@ -20,7 +20,7 @@ class FacturacionService
         int $idCliente,
         array $items,
         float $ivaPorcentaje,
-        ?float $retencionPorcentaje = null,
+        ?float $retencionPorcentaje = 15,
         ?string $formaPago = null,
         ?Carbon $fechaEmision = null
     ): Factura {
@@ -110,12 +110,12 @@ class FacturacionService
     }
 
     /**
-    * Anula una factura si aún no ha sido anulada.
-    *
-    * @param Factura $factura La instancia de la factura a anular.
-    * @return Factura La factura anulada.
-    * @throws InvalidArgumentException Si la factura ya está anulada.
-    */
+     * Anula una factura si aún no ha sido anulada.
+     *
+     * @param Factura $factura La instancia de la factura a anular.
+     * @return Factura La factura anulada.
+     * @throws InvalidArgumentException Si la factura ya está anulada.
+     */
     public function anularFactura(Factura $factura): Factura
     {
         if ($factura->anulada) {
@@ -123,9 +123,9 @@ class FacturacionService
         }
 
         return DB::transaction(function () use ($factura) {
-            $factura->anulada = true;
-            $factura->hash_anterior = $factura->hash; // guardamos el hash previo
-            $factura->hash = null; // puede regenerarse si se desea
+            $factura->anulada        = true;
+            $factura->hash_anterior  = $factura->hash_factura; // valor actual del hash
+            $factura->hash_factura   = null;                    // dejamos el hash en null
             $factura->save();
 
             return $factura;

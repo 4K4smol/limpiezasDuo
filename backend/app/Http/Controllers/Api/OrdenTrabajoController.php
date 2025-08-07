@@ -28,7 +28,8 @@ class OrdenTrabajoController extends Controller
         $query = OrdenTrabajo::with([
             'cliente:id_cliente,razon_social',
             'ubicacion:id_ubicacion,direccion',
-            'empleado:id_empleado,nombre'
+            'empleado:id_empleado,nombre',
+            'servicioPeriodico.servicio:id,nombre'
         ]);
 
         // Filtro por estado (puede ser string o array)

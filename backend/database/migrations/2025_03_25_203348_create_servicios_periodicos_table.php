@@ -8,19 +8,19 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('servicios_periodicos', function (Blueprint $table) {
-            $table->id();
+            $table->id('id_servicio_periodico');
             $table->unsignedBigInteger('id_cliente');
-            $table->foreign('id_cliente')
-                ->references('id_cliente')  // 👈 esto cambia
-                ->on('clientes')
-                ->onDelete('cascade');
-
-            $table->tinyInteger('periodicidad_mensual')
-                ->comment('veces al mes: 1, 2 o 4');
+            $table->tinyInteger('periodicidad_mensual')->comment('veces al mes: 1, 2 o 4');
             $table->boolean('activo')->default(true);
             $table->timestamps();
+
+            $table->foreign('id_cliente')
+                  ->references('id_cliente')
+                  ->on('clientes')
+                  ->onDelete('cascade');
         });
     }
+
     public function down(): void
     {
         Schema::dropIfExists('servicios_periodicos');

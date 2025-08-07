@@ -8,69 +8,72 @@ use App\Http\Resources\ServicioPeriodicoResource;
 use App\Models\ServicioPeriodico;
 use App\Services\ServicioPeriodicoService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Http\JsonResponse;
 
 class ServicioPeriodicoController extends Controller
 {
-    public function index()
+    public function index(): JsonResponse
     {
-        return ServicioPeriodico::with([
+        $contratos = ServicioPeriodico::with([
             'cliente:id_cliente,razon_social',
             'programaciones.servicio:id_servicio,nombre',
             'programaciones.ubicacion:id_ubicacion,direccion'
         ])->activos()->paginate(10);
+
+        return response()->json(ServicioPeriodicoResource::collection($contratos));
     }
 
-    public function store(StoreServicioPeriodicoRequest $req)
+    public function store(StoreServicioPeriodicoRequest $request): JsonResponse
     {
-        $data = $req->validated();
+        $data = $request->validated();
 
         $contrato = DB::transaction(function () use ($data) {
             $sp = ServicioPeriodico::create([
-                'id_cliente'           => $data['id_cliente'],
+                'id_cliente' => $data['id_cliente'],
                 'periodicidad_mensual' => $data['periodicidad_mensual'],
-                'activo'               => $data['activo'] ?? true,
+                'activo' => $data['activo'] ?? true,
             ]);
-
             $sp->programaciones()->createMany($data['programaciones']);
             return $sp;
         });
 
-        return new ServicioPeriodicoResource($contrato->load('programaciones'));
+        return response()->json(new ServicioPeriodicoResource(
+            $contrato->load('cliente', 'programaciones.servicio', 'programaciones.ubicacion')
+        ), 201);
     }
 
-    public function show(ServicioPeriodico $servicios_periodico)
+    public function show(int $id): JsonResponse
     {
-        return new ServicioPeriodicoResource(
-            $servicios_periodico->load('programaciones')
-        );
+        $sp = ServicioPeriodico::with(['cliente', 'programaciones.servicio', 'programaciones.ubicacion'])
+            ->findOrFail($id);
+
+        return response()->json(new ServicioPeriodicoResource($sp));
     }
 
-    public function update(
-        StoreServicioPeriodicoRequest $req,
-        ServicioPeriodico $servicios_periodico
-    ) {
-        $data = $req->validated();
+    public function update(StoreServicioPeriodicoRequest $request, int $id): JsonResponse
+    {
+        $sp = ServicioPeriodico::findOrFail($id);
+        $data = $request->validated();
 
-        DB::transaction(function () use ($servicios_periodico, $data) {
-            $servicios_periodico->update($data);
-            $servicios_periodico->programaciones()->delete();
-            $servicios_periodico->programaciones()->createMany($data['programaciones']);
+        DB::transaction(function () use ($sp, $data) {
+            $sp->update([
+                'id_cliente' => $data['id_cliente'],
+                'periodicidad_mensual' => $data['periodicidad_mensual'],
+                'activo' => $data['activo'] ?? true,
+            ]);
+            $sp->programaciones()->delete();
+            $sp->programaciones()->createMany($data['programaciones']);
         });
 
-        return new ServicioPeriodicoResource(
-            $servicios_periodico->fresh()->load('programaciones')
-        );
+        return response()->json(new ServicioPeriodicoResource(
+            $sp->fresh()->load('cliente', 'programaciones.servicio', 'programaciones.ubicacion')
+        ));
     }
 
-    public function destroy(ServicioPeriodico $servicios_periodico)
-    {
-        $servicios_periodico->delete();
-        return response()->noContent();
-    }
-
-    public function generarOrdenes(ServicioPeriodico $sp)
+    public function generarOrdenes(ServicioPeriodico $sp): JsonResponse
     {
         $ordenes = app(ServicioPeriodicoService::class)->generarOrdenesDesdeContrato($sp);
+
         return response()->json(['msg' => 'Órdenes generadas', 'ordenes' => $ordenes]);
     }
 }

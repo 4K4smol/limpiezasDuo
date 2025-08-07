@@ -58,4 +58,9 @@ class OrdenTrabajo extends Model
     {
         return $this->hasMany(OrdenTrabajoDetalle::class, 'id_orden', 'id_orden');
     }
+
+    public function servicioPeriodico()
+    {
+        return $this->belongsTo(ServicioPeriodico::class, 'id_servicio_periodico');
+    }
 }

@@ -22,5 +22,8 @@ class FacturaLog extends Model
         'usuario',
         'ip',
         'comentario',
+        'anulada',
+        'hash_factura',
+        'hash_anterior',
     ];
 }

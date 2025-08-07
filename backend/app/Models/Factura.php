@@ -39,6 +39,7 @@ class Factura extends Model
         'fecha_vencimiento'  => 'date',      // idem
         'created_at'         => 'datetime',  // opcional
         'updated_at'         => 'datetime',
+        'anulada' => 'boolean',
     ];
 
     public function cliente()

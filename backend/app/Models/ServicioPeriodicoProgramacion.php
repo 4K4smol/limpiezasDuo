@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\{Model};
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\{BelongsTo};
 
@@ -11,6 +11,7 @@ class ServicioPeriodicoProgramacion extends Model
     use HasFactory;
 
     protected $table = 'servicios_periodicos_programacion';
+    protected $primaryKey = 'id_servicio_periodico_programacion';
 
     protected $fillable = [
         'id_servicio_periodico',
@@ -20,12 +21,10 @@ class ServicioPeriodicoProgramacion extends Model
         'dia_hora',
     ];
 
-    /* Casts ---------------------------------------------------------------- */
     protected $casts = [
-        'dia_hora' => 'datetime:H:i',   // sólo hora – la fecha es de referencia
+        'dia_hora' => 'datetime:H:i',
     ];
 
-    /* Relaciones ----------------------------------------------------------- */
     public function contrato(): BelongsTo
     {
         return $this->belongsTo(ServicioPeriodico::class, 'id_servicio_periodico');
@@ -36,16 +35,13 @@ class ServicioPeriodicoProgramacion extends Model
         return $this->belongsTo(Servicio::class, 'id_servicio');
     }
 
-    public function ubicacion()
+    public function ubicacion(): BelongsTo
     {
         return $this->belongsTo(UbicacionCliente::class, 'id_ubicacion', 'id_ubicacion');
     }
 
-
-    /* Accessors helpers ---------------------------------------------------- */
-    /** Devuelve el weekday (1-7) sin tocar la hora */
     public function getDiaSemanaAttribute(): int
     {
-        return (int) $this->dia_hora->isoWeekday(); // 1 = Lunes … 7 = Domingo
+        return (int) $this->dia_hora->isoWeekday();
     }
 }
